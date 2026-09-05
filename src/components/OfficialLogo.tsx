@@ -1,0 +1,122 @@
+import React from 'react';
+
+interface OfficialLogoProps {
+  variant?: 'full' | 'mark' | 'horizontal';
+  className?: string;
+  markClassName?: string;
+  textClassName?: string;
+  textColor?: string;
+  theme?: 'light' | 'dark' | 'adaptive';
+  height?: number | string;
+}
+
+export const OfficialLogoMark: React.FC<{ className?: string; color?: string }> = ({ 
+  className = "w-10 h-10", 
+  color = "currentColor" 
+}) => {
+  return (
+    <svg 
+      viewBox="0 0 260 230" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      {/* Circular Arc */}
+      <path 
+        d="M 22 175 C 10 95 48 20 125 18 C 180 16 220 54 232 105" 
+        stroke={color} 
+        strokeWidth="6" 
+        strokeLinecap="round" 
+        fill="none" 
+      />
+      
+      {/* Seagulls in Sky */}
+      <path 
+        d="M 155 72 C 161 66 166 66 172 70 C 178 66 183 66 189 72 C 183 70 178 70 172 72 C 166 70 161 70 155 72 Z" 
+        fill={color} 
+      />
+      <path 
+        d="M 185 95 C 190 90 194 90 199 93 C 204 90 208 90 213 95 C 208 93 204 93 199 95 C 194 93 190 93 185 95 Z" 
+        fill={color} 
+      />
+
+      {/* Lighthouse */}
+      {/* Finial needle */}
+      <path d="M 74 26 L 76 26 L 76 36 L 74 36 Z" fill={color} />
+      <circle cx="75" cy="26" r="2.5" fill={color} />
+
+      {/* Dome / Lantern Top */}
+      <path d="M 61 46 C 61 36 89 36 89 46 Z" fill={color} />
+      
+      {/* Lantern Room */}
+      <rect x="63" y="46" width="24" height="22" fill={color} />
+      {/* Glass windows inside lantern */}
+      <rect x="66" y="48" width="4" height="18" fill="#ffffff" rx="0.5" />
+      <rect x="73" y="48" width="4" height="18" fill="#ffffff" rx="0.5" />
+      <rect x="80" y="48" width="4" height="18" fill="#ffffff" rx="0.5" />
+
+      {/* Gallery / Platform & Railing */}
+      <rect x="57" y="68" width="36" height="5" rx="1.5" fill={color} />
+      <line x1="58" y1="65" x2="92" y2="65" stroke={color} strokeWidth="2" />
+      <line x1="62" y1="65" x2="62" y2="68" stroke={color} strokeWidth="1.5" />
+      <line x1="75" y1="65" x2="75" y2="68" stroke={color} strokeWidth="1.5" />
+      <line x1="88" y1="65" x2="88" y2="68" stroke={color} strokeWidth="1.5" />
+
+      {/* Tower Body (Tapered) */}
+      <path d="M 60 73 L 90 73 L 98 170 L 52 170 Z" fill={color} />
+      
+      {/* Tower Light Windows / Details */}
+      <rect x="73" y="84" width="4" height="9" rx="1" fill="#ffffff" />
+      <rect x="73" y="104" width="4" height="9" rx="1" fill="#ffffff" />
+      <rect x="73" y="125" width="4.5" height="10" rx="1" fill="#ffffff" />
+      <rect x="72.5" y="146" width="5" height="12" rx="1" fill="#ffffff" />
+
+      {/* Yacht Silhouette */}
+      {/* Yacht Upper Deck & Windshield */}
+      <path d="M 125 142 L 148 142 L 174 155 L 115 155 Z" fill={color} />
+      {/* Windshield / Window slits */}
+      <polygon points="133,145 146,145 157,152 135,152" fill="#ffffff" />
+      
+      {/* Yacht Hull */}
+      <path d="M 100 155 L 186 155 L 230 166 C 215 173 175 175 100 175 L 95 160 Z" fill={color} />
+      
+      {/* Water Waves / Wake ripples */}
+      <path d="M 18 180 C 45 177 85 182 125 180 C 165 178 205 182 238 180" stroke={color} strokeWidth="4.5" strokeLinecap="round" fill="none" />
+      <path d="M 34 189 C 65 186 105 190 145 187 C 185 185 210 188 230 187" stroke={color} strokeWidth="4" strokeLinecap="round" fill="none" />
+      <path d="M 58 198 C 85 195 118 199 150 196 C 175 194 198 197 212 196" stroke={color} strokeWidth="3" strokeLinecap="round" fill="none" />
+      <path d="M 85 206 C 110 203 135 207 162 204 C 178 203 190 205 200 204" stroke={color} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+};
+
+export const OfficialLogo: React.FC<OfficialLogoProps> = ({
+  variant = 'full',
+  className = '',
+  markClassName = 'w-10 h-10 shrink-0',
+  textClassName = '',
+  theme = 'light'
+}) => {
+  if (variant === 'mark') {
+    return <OfficialLogoMark className={markClassName} />;
+  }
+
+  return (
+    <div className={`flex items-center space-x-3.5 ${className}`}>
+      {/* Emblem with clean badge container */}
+      <div className="relative p-1.5 rounded-xl bg-white/95 text-[#002147] shadow-md border border-white/20 flex items-center justify-center shrink-0">
+        <OfficialLogoMark className={markClassName} color="#002147" />
+      </div>
+
+      {/* Typography from Official Brand */}
+      <div className={`flex flex-col justify-center leading-none ${textClassName}`}>
+        <div className="flex items-center gap-1.5 font-black tracking-wider text-base sm:text-lg uppercase">
+          <span className={theme === 'dark' ? 'text-white' : 'text-inherit'}>CANCUN</span>
+          <span className="text-[#00A3E0] font-black">LIGHTHOUSE</span>
+        </div>
+        <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.32em] text-sky-200 uppercase mt-0.5">
+          MARINA
+        </span>
+      </div>
+    </div>
+  );
+};

@@ -85,95 +85,119 @@ export const BusinessGuideModal: React.FC<BusinessGuideModalProps> = ({ isOpen, 
     {
       field: 'Semana',
       what: 'Número de semana del año correspondiente a la fecha de venta/operación.',
-      example: 'Semana 30',
+      example: `Semana 8 (${new Date().getFullYear()})`,
       rule: 'Permite el análisis comparativo de tendencias semanales.'
     }
   ];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-3xl w-full border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-3xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-slate-900 dark:text-slate-100">
         {/* Modal Header */}
-        <div className="bg-[#002147] text-white p-5 flex items-center justify-between border-b border-[#001733]">
+        <div className="bg-[#002147] dark:bg-[#001733] text-white p-5 flex items-center justify-between border-b border-[#001733] dark:border-slate-800">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl bg-[#00A3E0]/20 border border-[#00A3E0]/40 flex items-center justify-center text-[#00A3E0]">
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base font-bold text-white">
-                Guía de Llenado & Reglas de Negocio — Reporte de Marina
+                Guía Oficial de Llenado, Fórmulas & Glosario
               </h2>
               <p className="text-xs text-slate-300">
-                Definiciones de columnas, cálculos financieros y políticas operativas de Cancun Lighthouse Marina
+                Cancun Lighthouse Marina — Manual Operativo {new Date().getFullYear()}
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer"
+            className="text-slate-300 hover:text-white p-1.5 rounded-lg hover:bg-white/10 active:scale-95 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-          {/* Quick Highlight Rules */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-200/80">
-              <span className="font-bold text-[#002147] flex items-center gap-1.5 mb-1">
-                <Users className="w-4 h-4 text-[#00A3E0]" />
-                Regla Notación PAX:
-              </span>
-              <p className="text-slate-700 leading-relaxed text-[11px]">
-                El primer número a la izquierda representa <strong>Adultos</strong>. Un punto indica <strong>Niños</strong> y un segundo punto indica <strong>Infantes</strong>. Ej: <code className="bg-white text-[#002147] border border-sky-200 px-1 py-0.5 rounded font-mono font-bold">2.2.1</code> = 2 adultos, 2 niños, 1 infante (Total 5 PAX).
-              </p>
-            </div>
+        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto text-xs">
+          {/* Key Formulas Section */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-[#002147] dark:text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
+              <DollarSign className="w-4 h-4 text-emerald-600" />
+              Fórmulas Financieras Oficiales
+            </h3>
 
-            <div className="bg-sky-50/70 p-3.5 rounded-xl border border-sky-200/80">
-              <span className="font-bold text-[#002147] flex items-center gap-1.5 mb-1">
-                <Anchor className="w-4 h-4 text-[#00A3E0]" />
-                Regla de Cobro de Muellaje:
-              </span>
-              <p className="text-slate-700 leading-relaxed text-[11px]">
-                Se cobra por pasajero: Si la actividad dura de <strong>1 a 3 horas</strong> se cobran <strong>$100 MXN</strong> por persona. Si es de <strong>4 a 8 horas</strong> se cobran <strong>$150 MXN</strong> por persona.
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
+                <span className="font-bold text-slate-900 dark:text-white block">1. Subtotal con Over</span>
+                <code className="text-[11px] text-cyan-700 dark:text-cyan-300 font-mono block">
+                  = Costo Reporte Neto + Over
+                </code>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Representa el costo directo real para la empresa.</p>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
+                <span className="font-bold text-slate-900 dark:text-white block">2. Comisión Neta Repartible</span>
+                <code className="text-[11px] text-cyan-700 dark:text-cyan-300 font-mono block">
+                  = Venta − Subtotal con Over
+                </code>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Margen bruto antes de dividir entre vendedor y casa.</p>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
+                <span className="font-bold text-slate-900 dark:text-white block">3. Comisión Vendedor & Utilidad Casa</span>
+                <code className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono block">
+                  = Comisión Neta / 2 (50% cada uno)
+                </code>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Reparto 50/50 sobre el margen de venta.</p>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
+                <span className="font-bold text-slate-900 dark:text-white block">4. Tarifa de Muellaje</span>
+                <code className="text-[11px] text-emerald-700 dark:text-emerald-400 font-mono block">
+                  = Total PAX × ($100 ó $150 MXN)
+                </code>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">$100 (1-3 hrs) | $150 (4-8 hrs) por persona.</p>
+              </div>
             </div>
           </div>
 
-          {/* Dictionary Table */}
-          <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-            <div className="px-4 py-2.5 bg-slate-100 border-b border-slate-200 font-bold text-xs text-slate-800 uppercase tracking-wider">
-              Catálogo de Columnas & Impacto Financiero
-            </div>
+          {/* Full Glossary Table */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-[#002147] dark:text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
+              <Info className="w-4 h-4 text-[#00A3E0]" />
+              Glosario de Columnas de la Base de Datos
+            </h3>
 
-            <div className="divide-y divide-slate-100 text-xs">
-              {glossaryItems.map((item, idx) => (
-                <div key={idx} className="p-3.5 hover:bg-slate-50 flex flex-col sm:flex-row sm:items-start gap-2">
-                  <div className="sm:w-1/4">
-                    <span className="font-bold text-slate-900 text-xs block">{item.field}</span>
-                    <span className="text-[10px] font-mono text-[#002147] bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded inline-block mt-0.5 font-semibold">
-                      {item.example}
-                    </span>
-                  </div>
-                  <div className="sm:w-3/4 space-y-1">
-                    <p className="text-slate-700">{item.what}</p>
-                    <p className="text-[11px] text-slate-500 italic">★ {item.rule}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <table className="w-full text-left divide-y divide-slate-200 dark:divide-slate-700">
+                <thead className="bg-[#002147] dark:bg-[#001733] text-white text-[11px] uppercase font-semibold">
+                  <tr>
+                    <th className="p-2.5">Columna</th>
+                    <th className="p-2.5">Definición</th>
+                    <th className="p-2.5">Ejemplo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                  {glossaryItems.map((item) => (
+                    <tr key={item.field} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                      <td className="p-2.5 font-bold text-slate-900 dark:text-white whitespace-nowrap">{item.field}</td>
+                      <td className="p-2.5">{item.what}</td>
+                      <td className="p-2.5 font-mono text-[11px] text-slate-500 dark:text-slate-400">{item.example}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="bg-slate-50 p-4 border-t border-slate-200 flex justify-end">
+        <div className="p-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-[#002147] hover:bg-[#001733] text-white text-xs font-semibold rounded-lg transition cursor-pointer"
+            className="px-4 py-2 bg-[#002147] hover:bg-[#002b5c] active:scale-95 text-white text-xs font-bold rounded-lg transition cursor-pointer"
           >
-            Entendido
+            Entendido, Cerrar Guía
           </button>
         </div>
       </div>

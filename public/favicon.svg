@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Circular Arc -->
+  <path d="M 22 135 C 12 75 40 18 100 16 C 145 15 178 45 186 85" stroke="#002147" stroke-width="4.5" stroke-linecap="round" fill="none" />
+  
+  <!-- Seagulls in Sky -->
+  <path d="M 124 58 C 129 53 133 53 138 56 C 143 53 147 53 152 58 C 147 56 143 56 138 58 C 133 56 129 56 124 58 Z" fill="#002147" />
+  <path d="M 148 76 C 152 72 155 72 159 74 C 163 72 166 72 170 76 C 166 74 163 74 159 76 C 155 74 152 74 148 76 Z" fill="#002147" />
+
+  <!-- Lighthouse -->
+  <!-- Finial needle -->
+  <path d="M 59 22 L 61 22 L 61 30 L 59 30 Z" fill="#002147" />
+  <circle cx="60" cy="22" r="2" fill="#002147" />
+
+  <!-- Dome / Lantern Top -->
+  <path d="M 49 38 C 49 30 71 30 71 38 Z" fill="#002147" />
+  
+  <!-- Lantern Room -->
+  <rect x="50" y="38" width="20" height="18" fill="#002147" />
+  <!-- Glass windows inside lantern -->
+  <rect x="52.5" y="40" width="3.5" height="14" fill="#ffffff" rx="0.5" />
+  <rect x="58.25" y="40" width="3.5" height="14" fill="#ffffff" rx="0.5" />
+  <rect x="64" y="40" width="3.5" height="14" fill="#ffffff" rx="0.5" />
+
+  <!-- Gallery / Platform & Railing -->
+  <rect x="46" y="56" width="28" height="4" rx="1" fill="#002147" />
+  <line x1="47" y1="54" x2="73" y2="54" stroke="#002147" stroke-width="1.5" />
+  <line x1="50" y1="54" x2="50" y2="56" stroke="#002147" stroke-width="1" />
+  <line x1="60" y1="54" x2="60" y2="56" stroke="#002147" stroke-width="1" />
+  <line x1="70" y1="54" x2="70" y2="56" stroke="#002147" stroke-width="1" />
+
+  <!-- Tower Body (Tapered) -->
+  <path d="M 48 60 L 72 60 L 78 135 L 42 135 Z" fill="#002147" />
+  
+  <!-- Tower Light Windows / Details -->
+  <rect x="58.5" y="68" width="3" height="7" rx="1" fill="#ffffff" />
+  <rect x="58.5" y="84" width="3" height="7" rx="1" fill="#ffffff" />
+  <rect x="58.5" y="100" width="3.5" height="8" rx="1" fill="#ffffff" />
+  <rect x="58" y="116" width="4" height="9" rx="1" fill="#ffffff" />
+
+  <!-- Yacht Silhouette -->
+  <!-- Yacht Upper Deck & Windshield -->
+  <path d="M 100 114 L 118 114 L 138 124 L 92 124 Z" fill="#002147" />
+  <!-- Windshield / Window slits -->
+  <polygon points="106,116 116,116 125,122 108,122" fill="#ffffff" />
+  
+  <!-- Yacht Hull -->
+  <path d="M 80 124 L 148 124 L 182 132 C 170 137 140 139 80 139 L 76 128 Z" fill="#002147" />
+  
+  <!-- Water Waves / Wake ripples -->
+  <path d="M 18 142 C 40 140 70 144 100 142 C 130 140 160 144 186 142" stroke="#002147" stroke-width="3.5" stroke-linecap="round" fill="none" />
+  <path d="M 30 149 C 55 147 85 150 115 148 C 145 146 165 149 180 148" stroke="#002147" stroke-width="3" stroke-linecap="round" fill="none" />
+  <path d="M 48 156 C 70 154 95 157 120 155 C 140 153 158 156 168 155" stroke="#002147" stroke-width="2.5" stroke-linecap="round" fill="none" />
+  <path d="M 68 162 C 88 160 108 163 130 161 C 142 160 152 162 158 161" stroke="#002147" stroke-width="2" stroke-linecap="round" fill="none" />
+</svg>

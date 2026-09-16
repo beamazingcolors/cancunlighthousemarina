@@ -8,6 +8,16 @@ export function formatCurrencyMXN(amount: number | null | undefined): string {
   }).format(amount);
 }
 
+export function formatCurrencyUSD(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined || isNaN(amount)) return '$0 USD';
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount) + ' USD';
+}
+
 export function formatCurrencySimple(amount: number | null | undefined, currency: 'MXN' | 'USD' = 'MXN'): string {
   if (amount === null || amount === undefined || isNaN(amount)) return '$0';
   return new Intl.NumberFormat('es-MX', {

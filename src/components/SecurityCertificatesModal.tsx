@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   ShieldCheck, 
   Lock, 
@@ -23,6 +23,14 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
   isOpen,
   onClose
 }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
   if (!isOpen) return null;
 
   const certificates = [
@@ -80,13 +88,17 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+      <div 
+        className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 cursor-pointer"
+        onClick={onClose}
+      >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden my-auto"
+          className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden my-auto cursor-default"
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="bg-[#002147] text-white p-5 sm:p-6 flex items-center justify-between border-b border-[#001733] relative overflow-hidden">

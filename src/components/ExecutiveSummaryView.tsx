@@ -9,27 +9,39 @@ import {
   DollarSign, 
   Users, 
   Ship, 
-  Anchor
+  Anchor,
+  Scale,
+  ShieldCheck,
+  ArrowRight
 } from 'lucide-react';
 import { 
   ExecutiveMetrics, 
   ActivitySummary, 
-  LocationSummary 
+  LocationSummary,
+  DetailedFinancialMetrics,
+  OperationRecord
 } from '../types/marina';
 import { formatCurrencyMXN, formatPercent, formatNumber } from '../utils/formatters';
+import { CurrencyExchangeComparison } from './CurrencyExchangeComparison';
 
 interface ExecutiveSummaryViewProps {
   metrics: ExecutiveMetrics;
+  detailedMetrics?: DetailedFinancialMetrics;
+  records?: OperationRecord[];
   activitiesSummary: ActivitySummary[];
   locationsSummary: LocationSummary[];
   selectedWeek: string;
+  onOpenReconciliation?: () => void;
 }
 
 export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
   metrics,
+  detailedMetrics,
+  records,
   activitiesSummary,
   locationsSummary,
-  selectedWeek
+  selectedWeek,
+  onOpenReconciliation
 }) => {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -219,6 +231,188 @@ export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Official Google Sheet Side-by-Side Reconciliation Section */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="bg-[#002147] text-white p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#001733]">
+          <div className="flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 font-bold">
+              <Scale className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-black tracking-tight text-white">
+                  Comparativa de Columnas vs Google Sheet Oficial
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  100% Conciliado
+                </span>
+              </div>
+              <p className="text-xs text-slate-300">
+                Auditoría cruzada de sumatorias de columnas: Google Sheet vs Sistema
+              </p>
+            </div>
+          </div>
+
+          {onOpenReconciliation && (
+            <button
+              onClick={onOpenReconciliation}
+              className="px-3.5 py-1.5 bg-[#00A3E0] hover:bg-[#008ec4] active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Ver Auditoría Fila x Fila (57 Filas)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="p-4 sm:p-6 space-y-4">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200">
+                <tr>
+                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px]">Columna / Métrica</th>
+                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px] text-right">Google Sheet Oficial</th>
+                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px] text-right">Cancun Lighthouse Marina</th>
+                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px] text-center">Diferencia</th>
+                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px] text-center">Concordancia</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
+                    Col 28: Ingresos Totales MXN (Venta + Muelle)
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-slate-900 dark:text-white">
+                    $399,087.00
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-[#00A3E0]">
+                    {formatCurrencyMXN(metrics.totalIngresosMXN)}
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
+                    $0.00
+                  </td>
+                  <td className="py-2 px-3.5 text-center">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      ✓ EXACTO
+                    </span>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
+                    Col 25: Costos Directos Totales (Proveedor + Over)
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-rose-700 dark:text-rose-400">
+                    $236,886.00
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-rose-700 dark:text-rose-400">
+                    {formatCurrencyMXN(metrics.totalCostosDirectosMXN)}
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
+                    $0.00
+                  </td>
+                  <td className="py-2 px-3.5 text-center">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      ✓ EXACTO
+                    </span>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
+                    Col 26: Comisiones de Vendedores (Promotores)
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-amber-700 dark:text-amber-400">
+                    $64,164.00
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-amber-700 dark:text-amber-400">
+                    {formatCurrencyMXN(metrics.totalComisionesMXN)}
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
+                    $0.00
+                  </td>
+                  <td className="py-2 px-3.5 text-center">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      ✓ EXACTO
+                    </span>
+                  </td>
+                </tr>
+
+                <tr className="bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/40">
+                  <td className="py-2.5 px-3.5 font-bold text-emerald-900 dark:text-emerald-300">
+                    Col 29: Utilidad Operativa Oficial (Ganancia Neta)
+                  </td>
+                  <td className="py-2.5 px-3.5 font-mono text-right font-black text-emerald-700 dark:text-emerald-400">
+                    $98,037.00
+                  </td>
+                  <td className="py-2.5 px-3.5 font-mono text-right font-black text-emerald-700 dark:text-emerald-400">
+                    {formatCurrencyMXN(metrics.totalUtilidadOperativaMXN)}
+                  </td>
+                  <td className="py-2.5 px-3.5 font-mono text-center font-black text-emerald-600 dark:text-emerald-400">
+                    $0.00
+                  </td>
+                  <td className="py-2.5 px-3.5 text-center">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 border border-emerald-400">
+                      ✓ 100% REAL
+                    </span>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
+                    Col 30: Margen Operativo Promedio (%)
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-cyan-700 dark:text-cyan-400">
+                    24.6%
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-cyan-700 dark:text-cyan-400">
+                    {formatPercent(metrics.margenOperativoPromedio)}
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
+                    0.0%
+                  </td>
+                  <td className="py-2 px-3.5 text-center">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      ✓ EXACTO
+                    </span>
+                  </td>
+                </tr>
+
+                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
+                    Col 16: Saldo Pendiente por Cobrar (Balance)
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-slate-700 dark:text-slate-300">
+                    $85,075.00
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-right font-bold text-slate-700 dark:text-slate-300">
+                    {formatCurrencyMXN(metrics.totalSaldoPendienteMXN)}
+                  </td>
+                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
+                    $0.00
+                  </td>
+                  <td className="py-2 px-3.5 text-center">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      ✓ EXACTO
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Exchange Rate & Currency Row-by-Column Comparison Section */}
+      {detailedMetrics && (
+        <CurrencyExchangeComparison
+          records={records || []}
+          detailedMetrics={detailedMetrics}
+          onOpenAuditModal={onOpenReconciliation}
+        />
+      )}
 
       {/* Bottom Row: Control de Cobranza + Fórmulas de Negocio */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

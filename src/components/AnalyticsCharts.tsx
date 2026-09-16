@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ResponsiveContainer,
   BarChart,
@@ -24,6 +24,7 @@ import {
 } from '../types/marina';
 import { formatCurrencyMXN, formatPercent, formatNumber } from '../utils/formatters';
 import { useTheme } from '../context/ThemeContext';
+import { Ship, Filter, CheckCircle2, Sparkles, MapPin, X } from 'lucide-react';
 
 interface AnalyticsChartsProps {
   activitiesData: ActivitySummary[];
@@ -31,6 +32,10 @@ interface AnalyticsChartsProps {
   promotersData: PromoterSummary[];
   weeklyData: WeeklyTrend[];
   metrics: ExecutiveMetrics;
+  selectedActivity?: string;
+  onSelectActivity?: (activity: string) => void;
+  selectedLocation?: string;
+  onSelectLocation?: (location: string) => void;
 }
 
 export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
@@ -38,7 +43,11 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
   locationsData,
   promotersData,
   weeklyData,
-  metrics
+  metrics,
+  selectedActivity = 'ALL',
+  onSelectActivity,
+  selectedLocation = 'ALL',
+  onSelectLocation
 }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -48,6 +57,9 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
   const tooltipBg = isDark ? '#0f172a' : '#002147';
   const tooltipBorder = isDark ? '#334155' : '#001733';
 
+  // State to toggle which metrics are visible in the activity chart
+  const [metricFilter, setMetricFilter] = useState<'all' | 'utilidad' | 'ingresos'>('all');
+
   // Data for PAX Pie Chart
   const paxPieData = [
     { name: 'Adultos', value: metrics.totalAdultos, color: isDark ? '#38bdf8' : '#002147' },
@@ -55,119 +67,294 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
     { name: 'Infantes', value: metrics.totalInfantes, color: isDark ? '#a78bfa' : '#7c3aed' }
   ].filter(d => d.value > 0);
 
+  // Distinct activity list for buttons
+  const availableActivityNames = activitiesData.map(a => a.actividad);
+
   return (
     <div className="space-y-6 min-w-0 max-w-full">
       {/* Top Row: Activity Breakdown + Location Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-w-0">
-        {/* Chart 1: Desempeño Financiero por Actividad */}
-        <div className="bg-white dark:bg-[#0b1728] rounded-xl p-4 sm:p-5 border border-sky-100 dark:border-[#162a4a] shadow-xs min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
-            <div>
-              <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight">
-                Resultados por Tipo de Actividad
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-sky-200/60">
-                Comparativa de Ingresos vs Costos y Utilidad Operativa en MXN
-              </p>
+        {/* Chart 1: Desempeño Financiero por Actividad (WITH FUNCTIONAL BUTTONS) */}
+        <div className="bg-white dark:bg-[#0b1728] rounded-xl p-4 sm:p-5 border border-sky-100 dark:border-[#162a4a] shadow-xs min-w-0 flex flex-col justify-between">
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
+              <div>
+                <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight flex items-center gap-1.5">
+                  <Ship className="w-4 h-4 text-[#00A3E0]" />
+                  <span>Resultados por Tipo de Actividad</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-sky-200/60">
+                  Haz clic en un botón (ej. Yate) para que la tabla y ganancias se filtren solo a esa actividad.
+                </p>
+              </div>
+
+              {/* Metric filter buttons inside chart */}
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[10px]">
+                <button
+                  type="button"
+                  onClick={() => setMetricFilter('all')}
+                  className={`px-2 py-0.5 rounded font-medium transition cursor-pointer ${
+                    metricFilter === 'all'
+                      ? 'bg-white dark:bg-slate-700 text-[#002147] dark:text-white font-bold shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Todos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMetricFilter('utilidad')}
+                  className={`px-2 py-0.5 rounded font-medium transition cursor-pointer ${
+                    metricFilter === 'utilidad'
+                      ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Utilidad
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMetricFilter('ingresos')}
+                  className={`px-2 py-0.5 rounded font-medium transition cursor-pointer ${
+                    metricFilter === 'ingresos'
+                      ? 'bg-[#002147] dark:bg-[#00A3E0] text-white font-bold shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  }`}
+                >
+                  Ingresos
+                </button>
+              </div>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#004b75] dark:text-sky-300 bg-sky-50 dark:bg-[#0f233d] px-2 py-0.5 rounded border border-sky-200 dark:border-[#1e3e68] self-start sm:self-auto">
-              {activitiesData.length} Categorías
-            </span>
-          </div>
 
-          <div className="h-72 w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={activitiesData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                <XAxis 
-                  dataKey="actividad" 
-                  tick={{ fill: axisColor, fontSize: 11, fontWeight: 500 }}
-                  axisLine={{ stroke: isDark ? '#1e3a5f' : '#cbd5e1' }}
-                />
-                <YAxis 
-                  tick={{ fill: axisColor, fontSize: 10 }}
-                  tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
-                  axisLine={{ stroke: isDark ? '#1e3a5f' : '#cbd5e1' }}
-                />
-                <Tooltip 
-                  formatter={(value: any) => [formatCurrencyMXN(Number(value)), '']}
-                  contentStyle={{ backgroundColor: tooltipBg, borderRadius: '8px', border: `1px solid ${tooltipBorder}`, color: '#fff', fontSize: '12px' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                <Bar dataKey="ingresosMXN" name="Ingresos Totales" fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="costosMXN" name="Costos Directos" fill="#f43f5e" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="utilidadMXN" name="Utilidad Operativa" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+            {/* INTERACTIVE ACTIVITY SELECTOR BUTTONS */}
+            <div className="flex items-center gap-1.5 flex-wrap pb-3">
+              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 mr-1">
+                <Filter className="w-3 h-3 text-[#00A3E0]" />
+                Filtrar tabla:
+              </span>
 
-          {/* Quick Stats Grid under Activity Chart */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-3 border-t border-sky-50 dark:border-[#162a4a]/80">
-            {activitiesData.slice(0, 4).map((act) => (
-              <div key={act.actividad} className="bg-sky-50/50 dark:bg-[#071220] p-2.5 rounded-lg border border-sky-100 dark:border-[#162a4a] min-w-0">
-                <div className="flex items-center justify-between gap-1">
-                  <span className="text-xs font-bold text-slate-800 dark:text-sky-100 truncate">{act.actividad}</span>
-                  <span className="text-[10px] font-bold text-sky-800 dark:text-sky-300 bg-sky-100/70 dark:bg-[#0f233d] px-1 rounded flex-shrink-0">
-                    {formatPercent(act.margen)}
+              <button
+                type="button"
+                onClick={() => onSelectActivity && onSelectActivity('ALL')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                  selectedActivity === 'ALL'
+                    ? 'bg-[#002147] text-white dark:bg-[#00A3E0] shadow-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                Todas ({activitiesData.length})
+              </button>
+
+              {availableActivityNames.map(actName => {
+                const isSelected = selectedActivity.toLowerCase() === actName.toLowerCase();
+                const iconEmoji = actName.toLowerCase().includes('yate') ? '⛵' 
+                  : actName.toLowerCase().includes('tour') ? '🏄'
+                  : actName.toLowerCase().includes('marina') ? '⚓'
+                  : actName.toLowerCase().includes('pernota') ? '🚢'
+                  : '✨';
+
+                return (
+                  <button
+                    key={actName}
+                    type="button"
+                    onClick={() => onSelectActivity && onSelectActivity(actName)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#00A3E0] text-white shadow-xs scale-102 ring-2 ring-[#00A3E0]/40'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                    title={`Filtrar tabla para ver únicamente ganancias de ${actName}`}
+                  >
+                    <span>{iconEmoji}</span>
+                    <span>{actName}</span>
+                    {isSelected && <CheckCircle2 className="w-3.5 h-3.5 ml-0.5" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active Filter Notification Alert */}
+            {selectedActivity !== 'ALL' && (
+              <div className="mb-3 p-2.5 bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800 rounded-xl flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#00A3E0] animate-ping" />
+                  <span className="text-[#002147] dark:text-sky-200">
+                    Mostrando únicamente ganancias y operaciones de: <strong>{selectedActivity}</strong>
                   </span>
                 </div>
-                <div className="text-xs font-bold text-slate-900 dark:text-white mt-1 font-mono truncate">
-                  {formatCurrencyMXN(act.ingresosMXN)}
-                </div>
-                <div className="text-[10px] text-slate-500 dark:text-sky-200/60 flex justify-between mt-0.5">
-                  <span>{act.operaciones} ops</span>
-                  <span>{act.pax} PAX</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => onSelectActivity && onSelectActivity('ALL')}
+                  className="text-[11px] font-bold text-sky-700 dark:text-sky-300 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                  <span>Ver todas</span>
+                </button>
               </div>
-            ))}
+            )}
+
+            {/* Chart */}
+            <div className="h-64 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={activitiesData} 
+                  margin={{ top: 10, right: 10, left: -10, bottom: 20 }}
+                  onClick={(e: any) => {
+                    if (e && e.activePayload && e.activePayload.length > 0) {
+                      const clickedAct = e.activePayload[0]?.payload?.actividad;
+                      if (clickedAct && onSelectActivity) {
+                        onSelectActivity(clickedAct);
+                      }
+                    }
+                  }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                  <XAxis 
+                    dataKey="actividad" 
+                    tick={{ fill: axisColor, fontSize: 11, fontWeight: 500 }}
+                    axisLine={{ stroke: isDark ? '#1e3a5f' : '#cbd5e1' }}
+                  />
+                  <YAxis 
+                    tick={{ fill: axisColor, fontSize: 10 }}
+                    tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
+                    axisLine={{ stroke: isDark ? '#1e3a5f' : '#cbd5e1' }}
+                  />
+                  <Tooltip 
+                    formatter={(value: any) => [formatCurrencyMXN(Number(value)), '']}
+                    contentStyle={{ backgroundColor: tooltipBg, borderRadius: '8px', border: `1px solid ${tooltipBorder}`, color: '#fff', fontSize: '12px' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                  {(metricFilter === 'all' || metricFilter === 'ingresos') && (
+                    <Bar dataKey="ingresosMXN" name="Ingresos Totales" fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} cursor="pointer" />
+                  )}
+                  {metricFilter === 'all' && (
+                    <Bar dataKey="costosMXN" name="Costos Directos" fill="#f43f5e" radius={[4, 4, 0, 0]} cursor="pointer" />
+                  )}
+                  {(metricFilter === 'all' || metricFilter === 'utilidad') && (
+                    <Bar dataKey="utilidadMXN" name="Utilidad Operativa" fill="#10b981" radius={[4, 4, 0, 0]} cursor="pointer" />
+                  )}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Quick Stats Grid under Activity Chart - ACTS AS BUTTONS TOO */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-3 border-t border-sky-50 dark:border-[#162a4a]/80">
+            {activitiesData.slice(0, 4).map((act) => {
+              const isSelected = selectedActivity.toLowerCase() === act.actividad.toLowerCase();
+              return (
+                <button
+                  key={act.actividad}
+                  type="button"
+                  onClick={() => onSelectActivity && onSelectActivity(act.actividad)}
+                  className={`text-left p-2.5 rounded-lg border transition cursor-pointer ${
+                    isSelected 
+                      ? 'bg-[#00A3E0]/15 border-[#00A3E0] dark:bg-[#00A3E0]/20'
+                      : 'bg-sky-50/50 dark:bg-[#071220] border-sky-100 dark:border-[#162a4a] hover:border-sky-300'
+                  }`}
+                  title={`Clic para filtrar ganancias de ${act.actividad}`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-bold text-slate-800 dark:text-sky-100 truncate flex items-center gap-1">
+                      {act.actividad}
+                    </span>
+                    <span className="text-[10px] font-bold text-sky-800 dark:text-sky-300 bg-sky-100/70 dark:bg-[#0f233d] px-1 rounded flex-shrink-0">
+                      {formatPercent(act.margen)}
+                    </span>
+                  </div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white mt-1 font-mono truncate">
+                    {formatCurrencyMXN(act.ingresosMXN)}
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-sky-200/60 flex justify-between mt-0.5">
+                    <span>{act.operaciones} ops</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">+{formatCurrencyMXN(act.utilidadMXN)}</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Chart 2: Comparativa por Locación */}
-        <div className="bg-white dark:bg-[#0b1728] rounded-xl p-4 sm:p-5 border border-sky-100 dark:border-[#162a4a] shadow-xs min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
-            <div>
-              <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight">
-                Rendimiento por Locación de Venta
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-sky-200/60">
-                Distribución de volumen y márgenes entre puntos de venta
-              </p>
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#004b75] dark:text-sky-300 bg-sky-50 dark:bg-[#0f233d] px-2 py-0.5 rounded border border-sky-200 dark:border-[#1e3e68] self-start sm:self-auto">
-              Lighthouse vs Fashion Harbor
-            </span>
-          </div>
+        <div className="bg-white dark:bg-[#0b1728] rounded-xl p-4 sm:p-5 border border-sky-100 dark:border-[#162a4a] shadow-xs min-w-0 flex flex-col justify-between">
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
+              <div>
+                <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-[#00A3E0]" />
+                  <span>Rendimiento por Locación de Venta</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-sky-200/60">
+                  Distribución de volumen y márgenes entre puntos de venta
+                </p>
+              </div>
 
-          <div className="h-72 w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={locationsData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
-                <XAxis 
-                  dataKey="locacion" 
-                  tick={{ fill: axisColor, fontSize: 11, fontWeight: 500 }}
-                  axisLine={{ stroke: isDark ? '#1e3a5f' : '#cbd5e1' }}
-                />
-                <YAxis 
-                  tick={{ fill: axisColor, fontSize: 10 }}
-                  tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
-                  axisLine={{ stroke: isDark ? '#1e3a5f' : '#cbd5e1' }}
-                />
-                <Tooltip 
-                  formatter={(value: any) => [formatCurrencyMXN(Number(value)), '']}
-                  contentStyle={{ backgroundColor: tooltipBg, borderRadius: '8px', border: `1px solid ${tooltipBorder}`, color: '#fff', fontSize: '12px' }}
-                />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                <Bar dataKey="ingresosMXN" name="Ingresos MXN" fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="utilidadMXN" name="Utilidad Neta MXN" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+              {/* Location filter buttons */}
+              {onSelectLocation && (
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[10px]">
+                  <button
+                    type="button"
+                    onClick={() => onSelectLocation('ALL')}
+                    className={`px-2 py-0.5 rounded font-medium transition cursor-pointer ${
+                      selectedLocation === 'ALL'
+                        ? 'bg-[#002147] text-white dark:bg-[#00A3E0] font-bold shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    Todas
+                  </button>
+                  {locationsData.map(loc => (
+                    <button
+                      key={loc.locacion}
+                      type="button"
+                      onClick={() => onSelectLocation(loc.locacion)}
+                      className={`px-2 py-0.5 rounded font-medium transition cursor-pointer ${
+                        selectedLocation === loc.locacion
+                          ? 'bg-[#002147] text-white dark:bg-[#00A3E0] font-bold shadow-xs'
+                          : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      {loc.locacion}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="h-64 w-full min-w-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={locationsData} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
+                  <XAxis 
+                    dataKey="locacion" 
+                    tick={{ fill: axisColor, fontSize: 11, fontWeight: 500 }}
+                    axisLine={{ stroke: isDark ? '#1e3a5f' : '#cbd5e1' }}
+                  />
+                  <YAxis 
+                    tick={{ fill: axisColor, fontSize: 10 }}
+                    tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
+                    axisLine={{ stroke: isDark ? '#1e3a5f' : '#cbd5e1' }}
+                  />
+                  <Tooltip 
+                    formatter={(value: any) => [formatCurrencyMXN(Number(value)), '']}
+                    contentStyle={{ backgroundColor: tooltipBg, borderRadius: '8px', border: `1px solid ${tooltipBorder}`, color: '#fff', fontSize: '12px' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                  <Bar dataKey="ingresosMXN" name="Ingresos MXN" fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="utilidadMXN" name="Utilidad Neta MXN" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Location Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t border-sky-50 dark:border-[#162a4a]/80">
             {locationsData.map((loc) => (
-              <div key={loc.locacion} className="bg-sky-50/50 dark:bg-[#071220] p-3 rounded-lg border border-sky-100 dark:border-[#162a4a] min-w-0">
+              <div 
+                key={loc.locacion} 
+                onClick={() => onSelectLocation && onSelectLocation(loc.locacion)}
+                className="bg-sky-50/50 dark:bg-[#071220] p-3 rounded-lg border border-sky-100 dark:border-[#162a4a] min-w-0 hover:border-[#00A3E0] transition cursor-pointer"
+              >
                 <div className="flex items-center justify-between mb-1 gap-1">
                   <span className="text-xs font-bold text-slate-800 dark:text-sky-100 truncate">{loc.locacion}</span>
                   <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 flex-shrink-0">
@@ -243,112 +430,92 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
         </div>
       </div>
 
-      {/* Bottom Row: PAX Demographics + Top Promoters (Balanced 2-column aesthetic layout) */}
+      {/* Bottom Row: PAX Demographics + Top Promoters */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 min-w-0">
         {/* PAX Mix Chart */}
         <div className="bg-white dark:bg-[#0b1728] rounded-xl p-4 sm:p-5 border border-sky-100 dark:border-[#162a4a] shadow-xs min-w-0">
           <div className="flex items-center justify-between mb-1 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
             <div>
-              <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff]">
+              <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight">
                 Composición de Pasajeros (PAX)
               </h3>
               <p className="text-xs text-slate-500 dark:text-sky-200/60">
-                Desglose de Adultos, Niños e Infantes
+                Segmentación por categoría para cálculo de aforo y muellaje
               </p>
             </div>
-            <span className="text-xs font-bold text-[#002147] dark:text-sky-300 bg-sky-50 dark:bg-[#0f233d] px-2.5 py-1 rounded-lg border border-sky-200 dark:border-[#1e3e68] font-mono">
-              {metrics.totalPax} PAX Total
+            <span className="text-xs font-bold text-[#002147] dark:text-[#7cd1ff] bg-sky-50 dark:bg-[#0f233d] px-2 py-0.5 rounded border border-sky-200 dark:border-[#1e3e68]">
+              {formatNumber(metrics.totalPax)} Total
             </span>
           </div>
 
-          <div className="h-56 w-full">
+          <div className="h-64 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={paxPieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={82}
+                  innerRadius={60}
+                  outerRadius={85}
                   paddingAngle={4}
                   dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
                 >
                   {paxPieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(val: any) => [`${val} pasajeros`, 'Cantidad']}
+                  formatter={(value: any) => [`${value} pasajeros`, 'Cantidad']}
                   contentStyle={{ backgroundColor: tooltipBg, borderRadius: '8px', border: `1px solid ${tooltipBorder}`, color: '#fff', fontSize: '12px' }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
-
-          <div className="grid grid-cols-3 gap-2 mt-2 pt-3 border-t border-sky-50 dark:border-[#162a4a]/80 text-xs text-center">
-            <div className="p-2 bg-sky-50/60 dark:bg-[#071220] rounded-lg border border-sky-100 dark:border-[#162a4a]">
-              <span className="flex items-center justify-center gap-1 text-[11px] text-slate-600 dark:text-sky-200 mb-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#002147] dark:bg-sky-400 inline-block" />
-                Adultos
-              </span>
-              <span className="font-bold text-slate-900 dark:text-white font-mono text-sm">{metrics.totalAdultos}</span>
-            </div>
-            <div className="p-2 bg-sky-50/60 dark:bg-[#071220] rounded-lg border border-sky-100 dark:border-[#162a4a]">
-              <span className="flex items-center justify-center gap-1 text-[11px] text-slate-600 dark:text-sky-200 mb-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00A3E0] inline-block" />
-                Niños
-              </span>
-              <span className="font-bold text-[#00A3E0] font-mono text-sm">{metrics.totalNinos}</span>
-            </div>
-            <div className="p-2 bg-sky-50/60 dark:bg-[#071220] rounded-lg border border-sky-100 dark:border-[#162a4a]">
-              <span className="flex items-center justify-center gap-1 text-[11px] text-slate-600 dark:text-sky-200 mb-0.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block" />
-                Infantes
-              </span>
-              <span className="font-bold text-purple-700 dark:text-purple-400 font-mono text-sm">{metrics.totalInfantes}</span>
-            </div>
-          </div>
         </div>
 
-        {/* Top Promoters */}
+        {/* Top Promoters Ranking */}
         <div className="bg-white dark:bg-[#0b1728] rounded-xl p-4 sm:p-5 border border-sky-100 dark:border-[#162a4a] shadow-xs min-w-0">
           <div className="flex items-center justify-between mb-1 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
             <div>
-              <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff]">
-                Top Promotores / Vendedores
+              <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight">
+                Top Promotores & Generadores de Venta
               </h3>
               <p className="text-xs text-slate-500 dark:text-sky-200/60">
-                Ventas realizadas y comisiones asignadas
+                Líderes en volumen colocado y comisiones generadas
               </p>
             </div>
-            <span className="text-[11px] font-bold text-[#004b75] dark:text-sky-300 bg-sky-50 dark:bg-[#0f233d] px-2 py-0.5 rounded border border-sky-200 dark:border-[#1e3e68]">
-              {promotersData.length} Activos
+            <span className="text-xs font-bold text-slate-500 dark:text-sky-200/60">
+              Ranking {promotersData.length}
             </span>
           </div>
 
-          <div className="space-y-2 mt-3 max-h-72 overflow-y-auto pr-1">
-            {promotersData.slice(0, 6).map((prom, index) => (
-              <div key={prom.promotor} className="p-2.5 rounded-lg bg-sky-50/40 dark:bg-[#071220] border border-sky-100/80 dark:border-[#162a4a] flex items-center justify-between hover:border-sky-300 dark:hover:border-sky-600 transition-colors">
-                <div className="flex items-center space-x-2.5">
-                  <span className="w-5 h-5 rounded-full bg-[#002147] dark:bg-[#00A3E0] text-white font-bold text-[10px] flex items-center justify-center shadow-xs">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800/80 max-h-64 overflow-y-auto">
+            {promotersData.slice(0, 5).map((prom, index) => (
+              <div key={prom.promotor} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center space-x-2.5 min-w-0">
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${
+                    index === 0 ? 'bg-amber-400 text-slate-900 shadow-xs' :
+                    index === 1 ? 'bg-slate-300 text-slate-900' :
+                    index === 2 ? 'bg-amber-700 text-white' :
+                    'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}>
                     {index + 1}
                   </span>
-                  <div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[140px]">
-                      {prom.promotor}
-                    </div>
-                    <div className="text-[10px] text-slate-500 dark:text-sky-200/60">
-                      {prom.operaciones} {prom.operaciones === 1 ? 'operación' : 'operaciones'}
-                    </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-900 dark:text-white truncate">{prom.promotor}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-sky-200/60">
+                      {prom.operaciones} Operaciones registradas
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-bold text-slate-900 dark:text-white font-mono">
-                    {formatCurrencyMXN(prom.ventasMXN)}
-                  </div>
-                  <div className="text-[10px] text-amber-700 dark:text-amber-400 font-medium font-mono">
-                    Com: {formatCurrencyMXN(prom.comisionMXN)}
-                  </div>
+
+                <div className="text-right shrink-0">
+                  <p className="font-bold text-slate-900 dark:text-sky-100 font-mono">{formatCurrencyMXN(prom.ventasMXN)}</p>
+                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                    Comisión: {formatCurrencyMXN(prom.comisionMXN)}
+                  </p>
                 </div>
               </div>
             ))}

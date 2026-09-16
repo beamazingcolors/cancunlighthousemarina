@@ -44,6 +44,108 @@ export interface OperationRecord {
   margenOperativo: number; // in percentage e.g. 20.3
   estatusCobro: 'Liquidado' | 'Pendiente' | 'Otro';
   semana: string; // '26', '30', '31', etc.
+  // Currency & Exchange Rate calculation audit fields:
+  monedaOriginal: 'USD' | 'MXN';
+  tipoCambioAplicado: number;
+  tipoCambioFuente: 'Fila' | 'Referencia';
+  ventaUSD: number;
+  costoUSD: number;
+  comisionUSD: number;
+  utilidadUSD: number;
+  formulaConversion: string;
+}
+
+export type CurrencyDisplayMode = 'all_mxn' | 'split' | 'usd';
+
+export interface ExchangeRateRowAudit {
+  rowIndex: number;
+  id: string;
+  actividad: string;
+  servicio: string;
+  promotor: string;
+  monedaOriginal: 'USD' | 'MXN';
+  tipoCambio: number;
+  tipoCambioFuente: 'Fila' | 'Referencia';
+  // Original column values (Cols 10, 11, 13)
+  ventaOriginal: number;
+  costoOriginal: number;
+  comisionOriginal: number;
+  // Computed MXN columns (Cols 24, 25, 26, 29)
+  ventaMXN: number;
+  costoMXN: number;
+  comisionMXN: number;
+  muelleMXN: number;
+  utilidadMXN: number;
+  // USD equivalents
+  ventaUSD: number;
+  costoUSD: number;
+  comisionUSD: number;
+  utilidadUSD: number;
+  formulaTexto: string;
+  esExacto: boolean;
+}
+
+export interface DetailedFinancialMetrics {
+  // Conversión total a pesos (aplicando tipoCambio de cada fila para registros en USD)
+  totalUtilidadNetaMXN: number; // muelle + over + casa
+  totalOverMXN: number;
+  totalCasaMXN: number;
+  totalComisionesVendedoresMXN: number; // comision
+  totalMuelleMXN: number;
+  totalVentasMXN: number;
+  totalCostosDirectosMXN: number;
+  totalEgresosMXN: number; // costos + comisiones
+  totalIngresosBrutosMXN: number; // ventas + muelle
+  margenUtilidadNeta: number; // (utilidadNeta / ingresosBrutos) * 100
+
+  // Métricas oficiales directas del Google Sheet (Col 24-29)
+  totalUtilidadOperativaSheetMXN: number; // Columna 29: Ingresos - Costos con Over - Comisiones
+  sheetIngresosTotalesMXN: number; // Columna 28: $399,087
+  sheetCostosDirectosMXN: number; // Columna 25: $236,886
+  sheetComisionesMXN: number; // Columna 26: $64,164
+  sheetUtilidadOperativaMXN: number; // Columna 29: $98,037
+  sheetSaldoPendienteMXN: number; // Columna 16: $85,075
+  sheetVentasDepositadasMXN: number; // Columna 15: $233,267
+  margenOperativoSheet: number; // 24.6%
+
+  // Desglose Dólares (registros en USD)
+  usdRecordsCount: number;
+  usdTotalVentas: number;
+  usdTotalCostos: number;
+  usdTotalOver: number;
+  usdTotalCasa: number;
+  usdTotalComisiones: number;
+  usdTotalMuelle: number;
+  usdTotalUtilidadNeta: number; // usdMuelle + usdOver + usdCasa
+  usdTotalVentasConvertidasMXN: number;
+  usdTotalUtilidadConvertidaMXN: number;
+  usdTotalComisionesConvertidasMXN: number;
+
+  // Desglose Pesos (registros en MXN)
+  mxnRecordsCount: number;
+  mxnTotalVentas: number;
+  mxnTotalCostos: number;
+  mxnTotalOver: number;
+  mxnTotalCasa: number;
+  mxnTotalComisiones: number;
+  mxnTotalMuelle: number;
+  mxnTotalUtilidadNeta: number; // mxnMuelle + mxnOver + mxnCasa
+  mxnTotalVentasEquivalenteUSD: number;
+
+  // Auditoría y Comparativa de Tipos de Cambio
+  exchangeRateRows: ExchangeRateRowAudit[];
+  tcDistribution: {
+    tc: number;
+    label: string;
+    count: number;
+    countUSD: number;
+    countMXN: number;
+    totalVentaMXN: number;
+    totalUtilidadMXN: number;
+  }[];
+
+  // Tipo de cambio promedio ponderado
+  promedioTipoCambio: number;
 }
 
 export interface ExecutiveMetrics {

@@ -1,6 +1,8 @@
 import { 
   OperationRecord, 
   ExecutiveMetrics, 
+  DetailedFinancialMetrics,
+  ExchangeRateRowAudit,
   ActivitySummary, 
   LocationSummary, 
   PromoterSummary, 
@@ -16,6 +18,8 @@ const LIVE_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRHr_YZ4y1
  * "$12.000" => 12000
  * "$1.500" => 1500
  * "$150" => 150
+ * "($150)" => -150
+ * "($75)" => -75
  * "18,00" => 18
  * "15,7%" => 15.7
  * "-" or empty => 0
@@ -25,26 +29,31 @@ export function parseSpreadsheetNumber(val: string | undefined | null): number {
   const str = String(val).trim();
   if (!str || str === '-' || str === 'N/A') return 0;
 
+  // Check negative formatted in parentheses: ($150), ($75)
+  let isNeg = false;
+  let clean = str;
+  if (clean.startsWith('(') && clean.endsWith(')')) {
+    isNeg = true;
+    clean = clean.slice(1, -1).trim();
+  }
+
   // Remove currency symbol, spaces, and %
-  let clean = str.replace(/[$ %]/g, '').trim();
+  clean = clean.replace(/[$ %]/g, '').trim();
 
-  // If format is like 12.000 (meaning 12000) vs 18.50 (meaning 18.5)
-  // Let's check patterns:
-  // If has comma as decimal: e.g. "18,00" -> 18, "24,6" -> 24.6
+  let num = 0;
+  // If format has comma as decimal: e.g. "18,00" -> 18, "24,6" -> 24.6
   if (clean.includes(',')) {
-    // If it has dot as thousands (e.g. 1.234,56)
     clean = clean.replace(/\./g, '').replace(',', '.');
-    return parseFloat(clean) || 0;
-  }
-
-  // If it only has dots: e.g. "12.000", "1.500", "150", "18.50"
-  // If dot is followed by 3 digits at the end, e.g. 12.000 or 1.500 => thousands separator
-  if (/^\d+\.\d{3}$/.test(clean)) {
+    num = parseFloat(clean) || 0;
+  } else if (/^\d+(\.\d{3})+$/.test(clean) || /^\d+\.\d{3}$/.test(clean)) {
+    // Thousands dot separator e.g. 12.000, 1.500, 236.886
     clean = clean.replace(/\./g, '');
-    return parseFloat(clean) || 0;
+    num = parseFloat(clean) || 0;
+  } else {
+    num = parseFloat(clean) || 0;
   }
 
-  return parseFloat(clean) || 0;
+  return isNeg ? -num : num;
 }
 
 export function parseMarinaTSV(tsvString: string): OperationRecord[] {
@@ -111,6 +120,33 @@ export function parseMarinaTSV(tsvString: string): OperationRecord[] {
 
     const semana = (cols[32] || '').trim() || 'General';
 
+    // Definición de Tipo de Cambio y Conversión
+    // Si la columna dice USD significa que la venta fue en dólares
+    // Si está en MXN significa que la venta fue en pesos mexicanos
+    const monedaOriginal: 'USD' | 'MXN' = moneda;
+    const tipoCambioAplicado: number = (tipoCambio && tipoCambio > 0) ? tipoCambio : 18.0;
+    const tipoCambioFuente: 'Fila' | 'Referencia' = (tipoCambio && tipoCambio > 0) ? 'Fila' : 'Referencia';
+
+    let ventaUSD = 0;
+    let costoUSD = 0;
+    let comisionUSD = 0;
+    let utilidadUSD = 0;
+    let formulaConversion = '';
+
+    if (moneda === 'USD') {
+      ventaUSD = venta;
+      costoUSD = subtotalConOver;
+      comisionUSD = comision;
+      utilidadUSD = casa;
+      formulaConversion = `$${venta.toLocaleString('en-US')} USD × ${tipoCambioAplicado.toFixed(2)} = $${ventaMXN.toLocaleString('es-MX')} MXN`;
+    } else {
+      ventaUSD = tipoCambioAplicado > 0 ? ventaMXN / tipoCambioAplicado : 0;
+      costoUSD = tipoCambioAplicado > 0 ? costoTotalMXN / tipoCambioAplicado : 0;
+      comisionUSD = tipoCambioAplicado > 0 ? comisionMXN / tipoCambioAplicado : 0;
+      utilidadUSD = tipoCambioAplicado > 0 ? utilidadOperativaMXN / tipoCambioAplicado : 0;
+      formulaConversion = `$${ventaMXN.toLocaleString('es-MX')} MXN ÷ ${tipoCambioAplicado.toFixed(2)} = $${ventaUSD.toFixed(2)} USD`;
+    }
+
     records.push({
       id: `op-${i}-${cupon || 'folio'}-${actividad}`,
       rowIndex: i,
@@ -147,7 +183,15 @@ export function parseMarinaTSV(tsvString: string): OperationRecord[] {
       utilidadOperativaMXN,
       margenOperativo,
       estatusCobro,
-      semana
+      semana,
+      monedaOriginal,
+      tipoCambioAplicado,
+      tipoCambioFuente,
+      ventaUSD,
+      costoUSD,
+      comisionUSD,
+      utilidadUSD,
+      formulaConversion
     });
   }
 
@@ -257,6 +301,224 @@ export function calculateExecutiveMetrics(records: OperationRecord[]): Executive
     operacionesLiquidadas,
     operacionesPendientes,
     tasaCobranza
+  };
+}
+
+export function calculateDetailedFinancialMetrics(records: OperationRecord[]): DetailedFinancialMetrics {
+  let usdRecordsCount = 0;
+  let usdTotalVentas = 0;
+  let usdTotalCostos = 0;
+  let usdTotalOver = 0;
+  let usdTotalCasa = 0;
+  let usdTotalComisiones = 0;
+  let usdTotalMuelle = 0;
+
+  let usdTotalVentasConvertidasMXN = 0;
+  let usdTotalUtilidadConvertidaMXN = 0;
+  let usdTotalComisionesConvertidasMXN = 0;
+
+  let mxnRecordsCount = 0;
+  let mxnTotalVentas = 0;
+  let mxnTotalCostos = 0;
+  let mxnTotalOver = 0;
+  let mxnTotalCasa = 0;
+  let mxnTotalComisiones = 0;
+  let mxnTotalMuelle = 0;
+  let mxnTotalVentasEquivalenteUSD = 0;
+
+  let totalUtilidadNetaMXN = 0;
+  let totalOverMXN = 0;
+  let totalCasaMXN = 0;
+  let totalComisionesVendedoresMXN = 0;
+  let totalMuelleMXN = 0;
+  let totalVentasMXN = 0;
+  let totalCostosDirectosMXN = 0;
+
+  let sheetIngresosTotalesMXN = 0;
+  let sheetCostosDirectosMXN = 0;
+  let sheetComisionesMXN = 0;
+  let sheetUtilidadOperativaMXN = 0;
+  let sheetSaldoPendienteMXN = 0;
+  let sheetVentasDepositadasMXN = 0;
+
+  let sumTc = 0;
+  let countTc = 0;
+
+  const exchangeRateRows: ExchangeRateRowAudit[] = [];
+  const tcGroups: Record<number, { count: number; countUSD: number; countMXN: number; totalVentaMXN: number; totalUtilidadMXN: number }> = {};
+
+  for (const r of records) {
+    sheetIngresosTotalesMXN += r.ingresosTotalesMXN;
+    sheetCostosDirectosMXN += r.costoTotalMXN;
+    sheetComisionesMXN += r.comisionMXN;
+    sheetUtilidadOperativaMXN += r.utilidadOperativaMXN;
+    sheetSaldoPendienteMXN += r.balance;
+    sheetVentasDepositadasMXN += r.deposito;
+
+    const isUSD = r.moneda === 'USD';
+    const tc = r.tipoCambioAplicado;
+
+    if (isUSD) {
+      usdRecordsCount++;
+      usdTotalVentas += r.venta;
+      usdTotalCostos += r.costoReporteNeto;
+      usdTotalOver += r.over;
+      usdTotalCasa += r.casa;
+      usdTotalComisiones += r.comision;
+      usdTotalMuelle += (r.ingresoMuelleMXN || r.muelle);
+
+      usdTotalVentasConvertidasMXN += r.ventaMXN;
+      usdTotalUtilidadConvertidaMXN += r.utilidadOperativaMXN;
+      usdTotalComisionesConvertidasMXN += r.comisionMXN;
+
+      sumTc += tc;
+      countTc++;
+
+      // Convert to MXN by multiplying by row's tipoCambio:
+      const overMXN = r.over * tc;
+      const casaMXN = r.casa * tc;
+      const comisionMXN = r.comision * tc;
+      const muelleMXN = r.ingresoMuelleMXN || r.muelle;
+      const ventaMXN = r.ventaMXN;
+      const costoMXN = r.costoTotalMXN;
+
+      totalOverMXN += overMXN;
+      totalCasaMXN += casaMXN;
+      totalComisionesVendedoresMXN += comisionMXN;
+      totalMuelleMXN += muelleMXN;
+      totalVentasMXN += ventaMXN;
+      totalCostosDirectosMXN += costoMXN;
+      // Formula solicitada: Utilidad neta = muelle + over + casa
+      totalUtilidadNetaMXN += (muelleMXN + overMXN + casaMXN);
+    } else {
+      mxnRecordsCount++;
+      mxnTotalVentas += r.venta;
+      mxnTotalCostos += r.costoReporteNeto;
+      mxnTotalOver += r.over;
+      mxnTotalCasa += r.casa;
+      mxnTotalComisiones += r.comision;
+      mxnTotalMuelle += (r.ingresoMuelleMXN || r.muelle);
+
+      mxnTotalVentasEquivalenteUSD += r.ventaUSD;
+
+      totalOverMXN += r.over;
+      totalCasaMXN += r.casa;
+      totalComisionesVendedoresMXN += r.comision;
+      totalMuelleMXN += (r.ingresoMuelleMXN || r.muelle);
+      totalVentasMXN += r.venta;
+      totalCostosDirectosMXN += r.costoReporteNeto;
+      // Formula solicitada: Utilidad neta = muelle + over + casa
+      totalUtilidadNetaMXN += ((r.ingresoMuelleMXN || r.muelle) + r.over + r.casa);
+    }
+
+    // Auditoría fila a fila de Tipo de Cambio
+    const mathMatch = r.moneda === 'USD' 
+      ? Math.abs((r.venta * r.tipoCambioAplicado) - r.ventaMXN) < 1.0
+      : Math.abs(r.venta - r.ventaMXN) < 1.0;
+
+    exchangeRateRows.push({
+      rowIndex: r.rowIndex,
+      id: r.id,
+      actividad: r.actividad,
+      servicio: r.servicio,
+      promotor: r.promotor,
+      monedaOriginal: r.monedaOriginal,
+      tipoCambio: r.tipoCambioAplicado,
+      tipoCambioFuente: r.tipoCambioFuente,
+      ventaOriginal: r.monedaOriginal === 'USD' ? r.venta : r.ventaMXN,
+      costoOriginal: r.monedaOriginal === 'USD' ? r.subtotalConOver : r.costoTotalMXN,
+      comisionOriginal: r.monedaOriginal === 'USD' ? r.comision : r.comisionMXN,
+      ventaMXN: r.ventaMXN,
+      costoMXN: r.costoTotalMXN,
+      comisionMXN: r.comisionMXN,
+      muelleMXN: r.ingresoMuelleMXN,
+      utilidadMXN: r.utilidadOperativaMXN,
+      ventaUSD: r.ventaUSD,
+      costoUSD: r.costoUSD,
+      comisionUSD: r.comisionUSD,
+      utilidadUSD: r.utilidadUSD,
+      formulaTexto: r.formulaConversion,
+      esExacto: mathMatch
+    });
+
+    // Distribución por Tipo de Cambio
+    const tcKey = r.tipoCambioAplicado;
+    if (!tcGroups[tcKey]) {
+      tcGroups[tcKey] = { count: 0, countUSD: 0, countMXN: 0, totalVentaMXN: 0, totalUtilidadMXN: 0 };
+    }
+    tcGroups[tcKey].count++;
+    if (r.moneda === 'USD') tcGroups[tcKey].countUSD++;
+    else tcGroups[tcKey].countMXN++;
+    tcGroups[tcKey].totalVentaMXN += r.ventaMXN;
+    tcGroups[tcKey].totalUtilidadMXN += r.utilidadOperativaMXN;
+  }
+
+  const tcDistribution = Object.keys(tcGroups)
+    .map(k => Number(k))
+    .sort((a, b) => a - b)
+    .map(tc => ({
+      tc,
+      label: `$${tc.toFixed(2)} MXN/USD`,
+      ...tcGroups[tc]
+    }));
+
+  const usdTotalUtilidadNeta = usdTotalMuelle + usdTotalOver + usdTotalCasa;
+  const mxnTotalUtilidadNeta = mxnTotalMuelle + mxnTotalOver + mxnTotalCasa;
+
+  const totalIngresosBrutosMXN = totalVentasMXN + totalMuelleMXN;
+  const totalEgresosMXN = totalCostosDirectosMXN + totalComisionesVendedoresMXN;
+  const margenUtilidadNeta = totalIngresosBrutosMXN > 0
+    ? (totalUtilidadNetaMXN / totalIngresosBrutosMXN) * 100
+    : 0;
+
+  const margenOperativoSheet = sheetIngresosTotalesMXN > 0
+    ? (sheetUtilidadOperativaMXN / sheetIngresosTotalesMXN) * 100
+    : 0;
+
+  const promedioTipoCambio = countTc > 0 ? (sumTc / countTc) : 18.0;
+
+  return {
+    totalUtilidadNetaMXN,
+    totalOverMXN,
+    totalCasaMXN,
+    totalComisionesVendedoresMXN,
+    totalMuelleMXN,
+    totalVentasMXN,
+    totalCostosDirectosMXN,
+    totalEgresosMXN,
+    totalIngresosBrutosMXN,
+    margenUtilidadNeta,
+    totalUtilidadOperativaSheetMXN: sheetUtilidadOperativaMXN,
+    sheetIngresosTotalesMXN,
+    sheetCostosDirectosMXN,
+    sheetComisionesMXN,
+    sheetUtilidadOperativaMXN,
+    sheetSaldoPendienteMXN,
+    sheetVentasDepositadasMXN,
+    margenOperativoSheet,
+    usdRecordsCount,
+    usdTotalVentas,
+    usdTotalCostos,
+    usdTotalOver,
+    usdTotalCasa,
+    usdTotalComisiones,
+    usdTotalMuelle,
+    usdTotalUtilidadNeta,
+    usdTotalVentasConvertidasMXN,
+    usdTotalUtilidadConvertidaMXN,
+    usdTotalComisionesConvertidasMXN,
+    mxnRecordsCount,
+    mxnTotalVentas,
+    mxnTotalCostos,
+    mxnTotalOver,
+    mxnTotalCasa,
+    mxnTotalComisiones,
+    mxnTotalMuelle,
+    mxnTotalUtilidadNeta,
+    mxnTotalVentasEquivalenteUSD,
+    exchangeRateRows,
+    tcDistribution,
+    promedioTipoCambio
   };
 }
 

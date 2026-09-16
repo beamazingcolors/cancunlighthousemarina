@@ -366,6 +366,25 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
             </select>
           </div>
         </div>
+
+        {/* Active Filter Didactic Banner */}
+        {filters.actividad !== 'ALL' && (
+          <div className="mt-3 p-2.5 bg-sky-50 dark:bg-[#0f233d] border border-sky-200 dark:border-[#1e3e68] rounded-xl flex items-center justify-between text-xs animate-in fade-in duration-150">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#00A3E0]" />
+              <span className="text-[#002147] dark:text-sky-200">
+                Filtro activo por Actividad: <strong className="text-[#00A3E0]">{filters.actividad}</strong> — La tabla y sus métricas muestran exclusivamente la ganancia y operaciones de <strong>{filters.actividad}</strong> ({filteredRecords.length} operaciones).
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => onFilterChange('actividad', 'ALL')}
+              className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+            >
+              ✕ Mostrar todas las actividades
+            </button>
+          </div>
+        )}
       </div>
 
       {/* View Mode 1: Responsive Cards View for Mobile/Tablet */}

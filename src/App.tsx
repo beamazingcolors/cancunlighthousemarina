@@ -2,22 +2,26 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   fetchMarinaData, 
   calculateExecutiveMetrics, 
+  calculateDetailedFinancialMetrics,
   getActivitiesSummary, 
   getLocationsSummary, 
   getPromotersSummary, 
   getWeeklyTrends 
 } from './services/dataService';
-import { OperationRecord, FilterState } from './types/marina';
+import { OperationRecord, FilterState, CurrencyDisplayMode, DetailedFinancialMetrics } from './types/marina';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { MetricCards } from './components/MetricCards';
+import { IncomeExpenseDetailSection } from './components/IncomeExpenseDetailSection';
 import { AnalyticsCharts } from './components/AnalyticsCharts';
 import { OperationsTable } from './components/OperationsTable';
 import { OperationDetailModal } from './components/OperationDetailModal';
 import { PaxMuelleCalculator } from './components/PaxMuelleCalculator';
 import { ExecutiveSummaryView } from './components/ExecutiveSummaryView';
+import { CurrencyExchangeComparison } from './components/CurrencyExchangeComparison';
 import { BusinessGuideModal } from './components/BusinessGuideModal';
 import { SecurityCertificatesModal } from './components/SecurityCertificatesModal';
+import { SheetReconciliationModal } from './components/SheetReconciliationModal';
 import { MobileNav } from './components/MobileNav';
 import { MobileDrawer } from './components/MobileDrawer';
 import { BackToTopButton } from './components/BackToTopButton';
@@ -34,9 +38,11 @@ function MarinaDashboardApp() {
   const [selectedRecord, setSelectedRecord] = useState<OperationRecord | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isCertificatesOpen, setIsCertificatesOpen] = useState<boolean>(false);
+  const [isReconciliationOpen, setIsReconciliationOpen] = useState<boolean>(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'operations' | 'executive' | 'calculator'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'operations' | 'executive' | 'calculator' | 'exchange'>('dashboard');
   const [rateLimitNotice, setRateLimitNotice] = useState<string | null>(null);
+  const [currencyMode, setCurrencyMode] = useState<CurrencyDisplayMode>('all_mxn');
 
   const [filters, setFilters] = useState<FilterState>({
     semana: 'ALL',
@@ -130,6 +136,11 @@ function MarinaDashboardApp() {
   // Executive Metrics computed for current filter scope
   const metrics = useMemo(() => {
     return calculateExecutiveMetrics(filteredRecords);
+  }, [filteredRecords]);
+
+  // Detailed multi-currency financial metrics (Muelle + Over + Casa, USD/MXN breakdown)
+  const detailedMetrics = useMemo(() => {
+    return calculateDetailedFinancialMetrics(filteredRecords);
   }, [filteredRecords]);
 
   // Aggregated summaries for charts and executive views
@@ -270,6 +281,7 @@ function MarinaDashboardApp() {
         onOpenCertificates={() => setIsCertificatesOpen(true)}
         onExportCSV={handleExportCSV}
         onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
+        onOpenReconciliation={() => setIsReconciliationOpen(true)}
       />
 
       {/* Main App Canvas */}
@@ -280,6 +292,7 @@ function MarinaDashboardApp() {
             {/* Hero Section with Live Financial Metrics & Tickers */}
             <HeroSection
               metrics={metrics}
+              detailedMetrics={detailedMetrics}
               filters={filters}
               onFilterChange={handleFilterChange}
               availableWeeks={availableWeeks}
@@ -287,21 +300,39 @@ function MarinaDashboardApp() {
               onTabChange={setActiveTab}
               onOpenCertificates={() => setIsCertificatesOpen(true)}
               onExportCSV={handleExportCSV}
+              currencyMode={currencyMode}
+              onCurrencyModeChange={setCurrencyMode}
+              onOpenReconciliation={() => setIsReconciliationOpen(true)}
             />
 
             {/* Top Metric Cards */}
             <MetricCards 
               metrics={metrics} 
+              detailedMetrics={detailedMetrics}
               selectedWeek={filters.semana} 
+              currencyMode={currencyMode}
+              onCurrencyModeChange={setCurrencyMode}
             />
 
-            {/* Visual Analytics & Charts */}
+            {/* Detailed Income and Expenses Reconciliation Section */}
+            <IncomeExpenseDetailSection
+              metrics={detailedMetrics}
+              currencyMode={currencyMode}
+              onCurrencyModeChange={setCurrencyMode}
+              selectedWeek={filters.semana}
+            />
+
+            {/* Visual Analytics & Charts with interactive activity filter */}
             <AnalyticsCharts
               activitiesData={activitiesSummary}
               locationsData={locationsSummary}
               promotersData={promotersSummary}
               weeklyData={weeklyTrends}
               metrics={metrics}
+              selectedActivity={filters.actividad}
+              onSelectActivity={(act) => handleFilterChange('actividad', act)}
+              selectedLocation={filters.locacion}
+              onSelectLocation={(loc) => handleFilterChange('locacion', loc)}
             />
 
             {/* Quick Access Operations Preview */}
@@ -339,7 +370,17 @@ function MarinaDashboardApp() {
           <div className="space-y-6 animate-in fade-in duration-200 min-w-0">
             <MetricCards 
               metrics={metrics} 
+              detailedMetrics={detailedMetrics}
               selectedWeek={filters.semana} 
+              currencyMode={currencyMode}
+              onCurrencyModeChange={setCurrencyMode}
+            />
+
+            <IncomeExpenseDetailSection
+              metrics={detailedMetrics}
+              currencyMode={currencyMode}
+              onCurrencyModeChange={setCurrencyMode}
+              selectedWeek={filters.semana}
             />
 
             <OperationsTable
@@ -362,9 +403,23 @@ function MarinaDashboardApp() {
           <div className="animate-in fade-in duration-200 min-w-0">
             <ExecutiveSummaryView
               metrics={metrics}
+              detailedMetrics={detailedMetrics}
+              records={records}
               activitiesSummary={activitiesSummary}
               locationsSummary={locationsSummary}
               selectedWeek={filters.semana}
+              onOpenReconciliation={() => setIsReconciliationOpen(true)}
+            />
+          </div>
+        )}
+
+        {/* Active View: Currency & Exchange Rate Row-by-Column Comparison */}
+        {activeTab === 'exchange' && (
+          <div className="animate-in fade-in duration-200 min-w-0">
+            <CurrencyExchangeComparison
+              records={records}
+              detailedMetrics={detailedMetrics}
+              onOpenAuditModal={() => setIsReconciliationOpen(true)}
             />
           </div>
         )}
@@ -383,8 +438,24 @@ function MarinaDashboardApp() {
           <div>
             <span className="text-white font-bold">Cancun Lighthouse Marina</span> — Sistema Corporativo de Control Financiero y Operativo {new Date().getFullYear()}
           </div>
-          <div className="flex items-center space-x-4 text-[11px] text-slate-400">
+          <div className="flex items-center flex-wrap justify-center gap-x-4 gap-y-2 text-[11px] text-slate-400">
             <span>Fuente: Google Sheets TSV</span>
+            <span>•</span>
+            <button 
+              onClick={() => setActiveTab('exchange')}
+              className="text-emerald-400 hover:underline cursor-pointer font-semibold flex items-center gap-1"
+            >
+              Tipo de Cambio (USD/MXN)
+              <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 rounded text-[9px]">Exacto</span>
+            </button>
+            <span>•</span>
+            <button 
+              onClick={() => setIsReconciliationOpen(true)}
+              className="text-cyan-400 hover:underline cursor-pointer font-semibold flex items-center gap-1"
+            >
+              Auditoría Google Sheet
+              <span className="px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded text-[9px]">100%</span>
+            </button>
             <span>•</span>
             <button 
               onClick={() => setIsGuideOpen(true)}
@@ -454,6 +525,15 @@ function MarinaDashboardApp() {
       <SecurityCertificatesModal
         isOpen={isCertificatesOpen}
         onClose={() => setIsCertificatesOpen(false)}
+      />
+
+      {/* Google Sheet Direct 100% Reconciliation Audit Modal */}
+      <SheetReconciliationModal
+        isOpen={isReconciliationOpen}
+        onClose={() => setIsReconciliationOpen(false)}
+        records={records}
+        metrics={metrics}
+        detailedMetrics={detailedMetrics}
       />
     </div>
   );

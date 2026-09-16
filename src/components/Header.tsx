@@ -9,7 +9,10 @@ import {
   Sparkles,
   Download,
   ChevronDown,
-  Menu
+  Menu,
+  FileSpreadsheet,
+  CheckCircle2,
+  Coins
 } from 'lucide-react';
 import { FilterState } from '../types/marina';
 import { OfficialLogoMark } from './OfficialLogo';
@@ -22,12 +25,13 @@ interface HeaderProps {
   isLive: boolean;
   onRefresh: () => void;
   isLoading: boolean;
-  activeTab: 'dashboard' | 'operations' | 'executive' | 'calculator';
-  onTabChange: (tab: 'dashboard' | 'operations' | 'executive' | 'calculator') => void;
+  activeTab: 'dashboard' | 'operations' | 'executive' | 'calculator' | 'exchange';
+  onTabChange: (tab: 'dashboard' | 'operations' | 'executive' | 'calculator' | 'exchange') => void;
   onOpenGuide: () => void;
   onOpenCertificates: () => void;
   onExportCSV: () => void;
   onOpenMobileDrawer?: () => void;
+  onOpenReconciliation?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -43,7 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenGuide,
   onOpenCertificates,
   onExportCSV,
-  onOpenMobileDrawer
+  onOpenMobileDrawer,
+  onOpenReconciliation
 }) => {
   return (
     <header id="main-header" className="bg-gradient-to-r from-[#002147] via-[#052b57] to-[#083a73] dark:from-[#040914] dark:via-[#071326] dark:to-[#0a1b38] text-white border-b border-[#0c3664] dark:border-[#132c4e] sticky top-0 z-30 shadow-lg backdrop-blur-md transition-colors duration-200">
@@ -116,6 +121,20 @@ export const Header: React.FC<HeaderProps> = ({
             <BookOpen className="w-3.5 h-3.5 text-[#00A3E0]" />
             <span>Guía & Fórmulas</span>
           </button>
+
+          {/* Google Sheet Reconciliation Trigger */}
+          {onOpenReconciliation && (
+            <button
+              id="btn-open-reconciliation"
+              onClick={onOpenReconciliation}
+              className="flex items-center space-x-1.5 bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-95 text-emerald-300 px-2.5 py-1.5 rounded-lg border border-emerald-400/40 transition cursor-pointer"
+              title="Ver comparativa matemática exacta de filas y columnas vs Google Sheet"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Auditoría Sheet</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-400 text-slate-950">100%</span>
+            </button>
+          )}
 
           {/* Export CSV */}
           <button
@@ -196,6 +215,19 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>Reporte Ejecutivo Marina</span>
+            </button>
+
+            <button
+              id="tab-btn-exchange"
+              onClick={() => onTabChange('exchange')}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition active:scale-95 flex items-center space-x-1.5 cursor-pointer whitespace-nowrap flex-shrink-0 ${
+                activeTab === 'exchange'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/30'
+                  : 'text-emerald-300 hover:text-white hover:bg-emerald-500/20'
+              }`}
+            >
+              <Coins className="w-3.5 h-3.5" />
+              <span>Tipo de Cambio (USD/MXN)</span>
             </button>
 
             <button

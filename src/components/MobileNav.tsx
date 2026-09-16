@@ -4,13 +4,14 @@ import {
   Layers, 
   Calendar, 
   Calculator, 
-  Menu
+  Menu,
+  Coins
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface MobileNavProps {
-  activeTab: 'dashboard' | 'operations' | 'executive' | 'calculator';
-  onTabChange: (tab: 'dashboard' | 'operations' | 'executive' | 'calculator') => void;
+  activeTab: 'dashboard' | 'operations' | 'executive' | 'calculator' | 'exchange';
+  onTabChange: (tab: 'dashboard' | 'operations' | 'executive' | 'calculator' | 'exchange') => void;
   onOpenDrawer: () => void;
 }
 
@@ -22,6 +23,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Sparkles },
     { id: 'operations', label: 'Operaciones', icon: Layers },
+    { id: 'exchange', label: 'T. Cambio', icon: Coins },
     { id: 'executive', label: 'Reporte', icon: Calendar },
     { id: 'calculator', label: 'Calculadora', icon: Calculator },
   ] as const;

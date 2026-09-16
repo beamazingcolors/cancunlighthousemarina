@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { 
   X, 
   CheckCircle2, 
@@ -31,9 +31,23 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
 
   const expectedMuelle = calculateExpectedMuelle(record.pax.total, record.horas);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-slate-900 dark:text-slate-100">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 cursor-pointer"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-slate-900 dark:text-slate-100 cursor-default"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Modal Header */}
         <div className="bg-[#002147] dark:bg-[#001733] text-white p-5 flex items-center justify-between border-b border-[#001733] dark:border-slate-800">
           <div className="flex items-center space-x-3">

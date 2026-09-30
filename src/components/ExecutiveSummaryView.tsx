@@ -1,28 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
-  Building2, 
-  FileSpreadsheet, 
-  HelpCircle, 
+  FileDown, 
   TrendingUp, 
-  CheckCircle2, 
-  Clock, 
-  DollarSign, 
-  Users, 
   Ship, 
-  Anchor,
-  Scale,
-  ShieldCheck,
-  ArrowRight
+  Building2, 
+  CheckCircle2, 
+  Loader2
 } from 'lucide-react';
 import { 
   ExecutiveMetrics, 
   ActivitySummary, 
-  LocationSummary,
+  LocationSummary, 
   DetailedFinancialMetrics,
-  OperationRecord
+  OperationRecord,
+  FilterState,
+  WeeklyTrend
 } from '../types/marina';
 import { formatCurrencyMXN, formatPercent, formatNumber } from '../utils/formatters';
-import { CurrencyExchangeComparison } from './CurrencyExchangeComparison';
+import { generateExecutivePdf } from '../services/executivePdfService';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ExecutiveSummaryViewProps {
   metrics: ExecutiveMetrics;
@@ -31,6 +27,8 @@ interface ExecutiveSummaryViewProps {
   activitiesSummary: ActivitySummary[];
   locationsSummary: LocationSummary[];
   selectedWeek: string;
+  filters?: FilterState;
+  weeklyTrends?: WeeklyTrend[];
   onOpenReconciliation?: () => void;
 }
 
@@ -41,35 +39,119 @@ export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
   activitiesSummary,
   locationsSummary,
   selectedWeek,
-  onOpenReconciliation
+  filters
 }) => {
+  const { language, t } = useLanguage();
+  const isEn = language === 'en';
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfSuccess, setPdfSuccess] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+
+  const handleGeneratePdf = async () => {
+    setIsGeneratingPdf(true);
+    setPdfError(null);
+    setPdfSuccess(false);
+
+    try {
+      await generateExecutivePdf({
+        metrics,
+        detailedMetrics,
+        records: records || [],
+        activitiesSummary,
+        locationsSummary,
+        selectedWeek,
+        filters,
+        language,
+      });
+      setPdfSuccess(true);
+      setTimeout(() => setPdfSuccess(false), 4000);
+    } catch (err) {
+      console.error('Error generating executive PDF:', err);
+      setPdfError(err instanceof Error ? err.message : (isEn ? 'Error generating PDF report' : 'Error al generar el reporte en PDF'));
+      setTimeout(() => setPdfError(null), 5000);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
+      {/* PDF Error Alert if any */}
+      {pdfError && (
+        <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 p-3.5 rounded-xl text-xs flex items-center justify-between shadow-xs">
+          <span>{pdfError}</span>
+          <button 
+            onClick={() => setPdfError(null)} 
+            className="text-rose-500 font-bold ml-2 text-sm hover:underline cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Header Banner matching Sheet format */}
       <div className="bg-[#002147] dark:bg-[#001733] text-white p-6 rounded-2xl border border-white/10 dark:border-slate-800 shadow-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-xs font-mono bg-[#001733] dark:bg-black/40 text-sky-200 border border-[#00A3E0]/30 px-2.5 py-0.5 rounded uppercase tracking-wider font-bold">
-                Reporte Oficial Consolidado
+                {isEn ? 'Official Consolidated Report' : 'Reporte Oficial Consolidado'}
               </span>
               <span className="text-xs text-slate-300">
-                {selectedWeek === 'ALL' ? `Todas las Semanas (${new Date().getFullYear()})` : `Semana ${selectedWeek} (${new Date().getFullYear()})`}
+                {selectedWeek === 'ALL'
+                  ? (isEn ? `All Weeks (${new Date().getFullYear()})` : `Todas las Semanas (${new Date().getFullYear()})`)
+                  : (isEn ? `Week ${selectedWeek} (${new Date().getFullYear()})` : `Semana ${selectedWeek} (${new Date().getFullYear()})`)}
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white mt-1.5 tracking-tight font-sans">
-              DASHBOARD EJECUTIVO — MARINA
+              {isEn ? 'EXECUTIVE DASHBOARD — MARINA' : 'DASHBOARD EJECUTIVO — MARINA'}
             </h2>
             <p className="text-xs text-slate-300 mt-0.5">
-              Resumen corporativo basado en el reporte semanal | Importes normalizados a MXN
+              {isEn
+                ? 'Corporate operational summary based on weekly report | Amounts normalized to MXN'
+                : 'Resumen corporativo basado en el reporte semanal | Importes normalizados a MXN'}
             </p>
           </div>
 
-          <div className="bg-[#001733] dark:bg-black/40 px-4 py-3 rounded-xl border border-[#00A3E0]/20 text-right">
-            <span className="text-[10px] text-slate-300 uppercase font-bold tracking-wider block">Margen Operativo Global</span>
-            <span className="text-2xl font-black text-[#00A3E0] font-mono">
-              {formatPercent(metrics.margenOperativoPromedio)}
-            </span>
+          <div className="flex items-center flex-wrap gap-3">
+            <div className="bg-[#001733] dark:bg-black/40 px-4 py-2.5 rounded-xl border border-[#00A3E0]/20 text-right">
+              <span className="text-[10px] text-slate-300 uppercase font-bold tracking-wider block">
+                {isEn ? 'Overall Operating Margin' : 'Margen Operativo Global'}
+              </span>
+              <span className="text-xl sm:text-2xl font-black text-[#00A3E0] font-mono">
+                {formatPercent(metrics.margenOperativoPromedio)}
+              </span>
+            </div>
+
+            {/* Generar PDF Ejecutivo Button */}
+            <button
+              onClick={handleGeneratePdf}
+              disabled={isGeneratingPdf}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer ${
+                pdfSuccess
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                  : 'bg-[#00A3E0] hover:bg-[#008ec4] active:scale-95 text-white'
+              } disabled:opacity-60 disabled:cursor-not-allowed`}
+              title={isEn ? 'Download formal executive PDF with current metrics' : 'Descargar reporte formal en PDF con la vista y métricas actuales'}
+            >
+              {isGeneratingPdf ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                  <span>{t.downloadingPdf}</span>
+                </>
+              ) : pdfSuccess ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  <span>{isEn ? 'PDF Generated!' : '¡PDF Generado!'}</span>
+                </>
+              ) : (
+                <>
+                  <FileDown className="w-4 h-4 text-white" />
+                  <span>{t.downloadPdfButton}</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -79,67 +161,85 @@ export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
         {/* Box 1: Ingresos Totales */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
-            Ingresos Totales
+            {t.cardRevenueTitle}
           </span>
           <span className="text-lg font-black text-slate-900 dark:text-white font-mono block">
             {formatCurrencyMXN(metrics.totalIngresosMXN)}
           </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">Venta + Muellaje</span>
+          <span className="text-[10px] text-slate-400 mt-1 block">
+            {isEn ? 'Sales + Dock Fees' : 'Venta + Muellaje'}
+          </span>
         </div>
 
         {/* Box 2: Costos Directos */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
-            Costos Directos
+            {isEn ? 'Direct Costs' : 'Costos Directos'}
           </span>
-          <span className="text-lg font-black text-rose-700 dark:text-rose-400 font-mono block">
+          <span className="text-lg font-black text-slate-900 dark:text-white font-mono block">
             {formatCurrencyMXN(metrics.totalCostosDirectosMXN)}
           </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">Proveedor + Over</span>
+          <span className="text-[10px] text-slate-400 mt-1 block">
+            {isEn ? 'Vendor + Over' : 'Proveedor + Over'}
+          </span>
         </div>
 
         {/* Box 3: Comisiones */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
-            Comisiones
+            {isEn ? 'Commissions (50%)' : 'Comisiones (50%)'}
           </span>
           <span className="text-lg font-black text-amber-700 dark:text-amber-400 font-mono block">
             {formatCurrencyMXN(metrics.totalComisionesMXN)}
           </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">Vendedores</span>
+          <span className="text-[10px] text-slate-400 mt-1 block">
+            {isEn ? 'Sales Team' : 'Vendedores'}
+          </span>
         </div>
 
         {/* Box 4: Utilidad Operativa */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">
-            Utilidad Operativa
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#002147] dark:text-[#38bdf8] block mb-1">
+            {t.cardProfitTitle}
           </span>
-          <span className="text-lg font-black text-emerald-700 dark:text-emerald-400 font-mono block">
+          <span className="text-lg font-black text-[#002147] dark:text-[#38bdf8] font-mono block">
             {formatCurrencyMXN(metrics.totalUtilidadOperativaMXN)}
           </span>
-          <span className="text-[10px] text-emerald-600 dark:text-emerald-500 mt-1 block">Ganancia Neta</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
+            {isEn ? 'Net Margin' : 'Ganancia Neta'}
+          </span>
         </div>
 
         {/* Box 5: Margen */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
-            Margen %
+            {isEn ? 'Margin %' : 'Margen %'}
           </span>
           <span className="text-lg font-black text-cyan-700 dark:text-cyan-400 font-mono block">
             {formatPercent(metrics.margenOperativoPromedio)}
           </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">Rentabilidad</span>
+          <span className="text-[10px] text-slate-400 mt-1 block">
+            {isEn ? 'Profitability' : 'Rentabilidad'}
+          </span>
         </div>
 
-        {/* Box 6: Saldo Pendiente */}
+        {/* Box 6: Pernotas & Muelle */}
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
-            Saldo Pendiente
+            {isEn ? 'Overnight & Dockage' : 'Pernotas & Muelle'}
           </span>
-          <span className="text-lg font-black text-amber-600 dark:text-amber-400 font-mono block">
-            {formatCurrencyMXN(metrics.totalSaldoPendienteMXN)}
+          <span className="text-lg font-black text-slate-900 dark:text-white font-mono block">
+            {formatCurrencyMXN(metrics.totalIngresoMuelleMXN)}
           </span>
-          <span className="text-[10px] text-slate-400 mt-1 block">Por cobrar</span>
+          <span className="text-[10px] text-slate-400 mt-1 block">
+            {metrics.totalPernotaNegativaMXN < 0 ? (
+              <span className="text-slate-500 dark:text-slate-400">
+                Pernota: +{formatCurrencyMXN(metrics.totalPernotaPositivaMXN)} ({formatCurrencyMXN(metrics.totalPernotaNegativaMXN)})
+              </span>
+            ) : (
+              isEn ? 'Dock Fees & Mooring' : 'Amarre & Muellaje'
+            )}
+          </span>
         </div>
       </div>
 
@@ -150,21 +250,21 @@ export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
           <div className="px-4 py-3 bg-[#002147] dark:bg-[#001733] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <Ship className="w-4 h-4 text-[#00A3E0]" />
-              Resultados por Actividad
+              {isEn ? 'Results by Nautical Activity' : 'Resultados por Actividad'}
             </span>
-            <span className="text-[10px] font-normal text-slate-300">Desglose</span>
+            <span className="text-[10px] font-normal text-slate-300">{isEn ? 'Breakdown' : 'Desglose'}</span>
           </div>
 
           <div className="overflow-x-auto w-full max-w-full overscroll-x-contain touch-pan-x min-w-0">
             <table className="w-full text-left text-xs min-w-[500px]">
               <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] uppercase font-semibold border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="px-3 py-2.5">Actividad</th>
-                  <th className="px-3 py-2.5 text-center">Ops</th>
+                  <th className="px-3 py-2.5">{t.colActivity}</th>
+                  <th className="px-3 py-2.5 text-center">{isEn ? 'Trips' : 'Ops'}</th>
                   <th className="px-3 py-2.5 text-center">PAX</th>
-                  <th className="px-3 py-2.5 text-right">Ingresos MXN</th>
-                  <th className="px-3 py-2.5 text-right">Utilidad MXN</th>
-                  <th className="px-3 py-2.5 text-right">Margen</th>
+                  <th className="px-3 py-2.5 text-right">{isEn ? 'Revenue (MXN)' : 'Ingresos MXN'}</th>
+                  <th className="px-3 py-2.5 text-right">{isEn ? 'Profit (MXN)' : 'Utilidad MXN'}</th>
+                  <th className="px-3 py-2.5 text-right">{isEn ? 'Margin' : 'Margen'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
@@ -194,20 +294,20 @@ export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
           <div className="px-4 py-3 bg-[#002147] dark:bg-[#001733] text-white font-bold text-xs uppercase tracking-wider flex items-center justify-between">
             <span className="flex items-center gap-1.5">
               <Building2 className="w-4 h-4 text-[#00A3E0]" />
-              Resultados por Locación
+              {isEn ? 'Results by Sales Location' : 'Resultados por Locación'}
             </span>
-            <span className="text-[10px] font-normal text-slate-300">Puntos de Venta</span>
+            <span className="text-[10px] font-normal text-slate-300">{isEn ? 'Points of Sale' : 'Puntos de Venta'}</span>
           </div>
 
           <div className="overflow-x-auto w-full max-w-full overscroll-x-contain touch-pan-x min-w-0">
             <table className="w-full text-left text-xs min-w-[460px]">
               <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] uppercase font-semibold border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="px-3 py-2.5">Locación</th>
-                  <th className="px-3 py-2.5 text-center">Ops</th>
-                  <th className="px-3 py-2.5 text-right">Ingresos MXN</th>
-                  <th className="px-3 py-2.5 text-right">Utilidad MXN</th>
-                  <th className="px-3 py-2.5 text-right">Margen</th>
+                  <th className="px-3 py-2.5">{t.colLocation}</th>
+                  <th className="px-3 py-2.5 text-center">{isEn ? 'Trips' : 'Ops'}</th>
+                  <th className="px-3 py-2.5 text-right">{isEn ? 'Revenue (MXN)' : 'Ingresos MXN'}</th>
+                  <th className="px-3 py-2.5 text-right">{isEn ? 'Profit (MXN)' : 'Utilidad MXN'}</th>
+                  <th className="px-3 py-2.5 text-right">{isEn ? 'Margin' : 'Margen'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
@@ -232,218 +332,38 @@ export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
         </div>
       </div>
 
-      {/* Official Google Sheet Side-by-Side Reconciliation Section */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
-        <div className="bg-[#002147] text-white p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#001733]">
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-400 font-bold">
-              <Scale className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm sm:text-base font-black tracking-tight text-white">
-                  Comparativa de Columnas vs Google Sheet Oficial
-                </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" />
-                  100% Conciliado
-                </span>
-              </div>
-              <p className="text-xs text-slate-300">
-                Auditoría cruzada de sumatorias de columnas: Google Sheet vs Sistema
-              </p>
-            </div>
-          </div>
-
-          {onOpenReconciliation && (
-            <button
-              onClick={onOpenReconciliation}
-              className="px-3.5 py-1.5 bg-[#00A3E0] hover:bg-[#008ec4] active:scale-95 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Ver Auditoría Fila x Fila (57 Filas)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        <div className="p-4 sm:p-6 space-y-4">
-          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200">
-                <tr>
-                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px]">Columna / Métrica</th>
-                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px] text-right">Google Sheet Oficial</th>
-                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px] text-right">Cancun Lighthouse Marina</th>
-                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px] text-center">Diferencia</th>
-                  <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[10px] text-center">Concordancia</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
-                    Col 28: Ingresos Totales MXN (Venta + Muelle)
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-slate-900 dark:text-white">
-                    $399,087.00
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-[#00A3E0]">
-                    {formatCurrencyMXN(metrics.totalIngresosMXN)}
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
-                    $0.00
-                  </td>
-                  <td className="py-2 px-3.5 text-center">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                      ✓ EXACTO
-                    </span>
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
-                    Col 25: Costos Directos Totales (Proveedor + Over)
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-rose-700 dark:text-rose-400">
-                    $236,886.00
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-rose-700 dark:text-rose-400">
-                    {formatCurrencyMXN(metrics.totalCostosDirectosMXN)}
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
-                    $0.00
-                  </td>
-                  <td className="py-2 px-3.5 text-center">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                      ✓ EXACTO
-                    </span>
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
-                    Col 26: Comisiones de Vendedores (Promotores)
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-amber-700 dark:text-amber-400">
-                    $64,164.00
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-amber-700 dark:text-amber-400">
-                    {formatCurrencyMXN(metrics.totalComisionesMXN)}
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
-                    $0.00
-                  </td>
-                  <td className="py-2 px-3.5 text-center">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                      ✓ EXACTO
-                    </span>
-                  </td>
-                </tr>
-
-                <tr className="bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-50 dark:hover:bg-emerald-950/40">
-                  <td className="py-2.5 px-3.5 font-bold text-emerald-900 dark:text-emerald-300">
-                    Col 29: Utilidad Operativa Oficial (Ganancia Neta)
-                  </td>
-                  <td className="py-2.5 px-3.5 font-mono text-right font-black text-emerald-700 dark:text-emerald-400">
-                    $98,037.00
-                  </td>
-                  <td className="py-2.5 px-3.5 font-mono text-right font-black text-emerald-700 dark:text-emerald-400">
-                    {formatCurrencyMXN(metrics.totalUtilidadOperativaMXN)}
-                  </td>
-                  <td className="py-2.5 px-3.5 font-mono text-center font-black text-emerald-600 dark:text-emerald-400">
-                    $0.00
-                  </td>
-                  <td className="py-2.5 px-3.5 text-center">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 border border-emerald-400">
-                      ✓ 100% REAL
-                    </span>
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
-                    Col 30: Margen Operativo Promedio (%)
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-cyan-700 dark:text-cyan-400">
-                    24.6%
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-cyan-700 dark:text-cyan-400">
-                    {formatPercent(metrics.margenOperativoPromedio)}
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
-                    0.0%
-                  </td>
-                  <td className="py-2 px-3.5 text-center">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                      ✓ EXACTO
-                    </span>
-                  </td>
-                </tr>
-
-                <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <td className="py-2 px-3.5 font-semibold text-slate-900 dark:text-white">
-                    Col 16: Saldo Pendiente por Cobrar (Balance)
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-slate-700 dark:text-slate-300">
-                    $85,075.00
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-right font-bold text-slate-700 dark:text-slate-300">
-                    {formatCurrencyMXN(metrics.totalSaldoPendienteMXN)}
-                  </td>
-                  <td className="py-2 px-3.5 font-mono text-center font-bold text-emerald-600 dark:text-emerald-400">
-                    $0.00
-                  </td>
-                  <td className="py-2 px-3.5 text-center">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                      ✓ EXACTO
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Exchange Rate & Currency Row-by-Column Comparison Section */}
-      {detailedMetrics && (
-        <CurrencyExchangeComparison
-          records={records || []}
-          detailedMetrics={detailedMetrics}
-          onOpenAuditModal={onOpenReconciliation}
-        />
-      )}
-
-      {/* Bottom Row: Control de Cobranza + Fórmulas de Negocio */}
+      {/* Bottom Row: Control de Operación + Fórmulas de Negocio */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Control de Cobranza y Operación */}
+        {/* Control de Operación */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs p-5 space-y-4">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            Control de Cobranza y Operación
+            <CheckCircle2 className="w-4 h-4 text-[#00A3E0]" />
+            {isEn ? 'Operations & Collections Control' : 'Control de Operación & Cobranza'}
           </h3>
 
           <div className="space-y-2.5 text-xs">
             <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
-              <span className="text-slate-600 dark:text-slate-400">Operaciones Registradas</span>
+              <span className="text-slate-600 dark:text-slate-400">{isEn ? 'Recorded Departures' : 'Operaciones Registradas'}</span>
               <span className="font-bold text-slate-900 dark:text-white font-mono text-sm">{metrics.totalOperaciones}</span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
-              <span className="text-slate-600 dark:text-slate-400">PAX Atendidos (Pasajeros)</span>
-              <span className="font-bold text-slate-900 dark:text-white font-mono text-sm">{metrics.totalPax} personas</span>
+              <span className="text-slate-600 dark:text-slate-400">{isEn ? 'Passengers Served (PAX)' : 'PAX Atendidos (Pasajeros)'}</span>
+              <span className="font-bold text-slate-900 dark:text-white font-mono text-sm">
+                {metrics.totalPax} {isEn ? 'passengers' : 'personas'}
+              </span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
-              <span className="text-slate-600 dark:text-slate-400">Ventas Depositadas (Cobro Efectivo)</span>
-              <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
+              <span className="text-slate-600 dark:text-slate-400">{isEn ? 'Deposits Paid (Cash/Card in Bank)' : 'Ventas Depositadas (Cobro Efectivo)'}</span>
+              <span className="font-bold text-slate-900 dark:text-white font-mono text-sm">
                 {formatCurrencyMXN(metrics.totalVentasDepositadasMXN)}
               </span>
             </div>
 
             <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg">
-              <span className="text-slate-600 dark:text-slate-400">Operaciones Pendientes de Liquidar</span>
-              <span className="font-bold text-amber-700 dark:text-amber-400 font-mono text-sm">{metrics.operacionesPendientes}</span>
+              <span className="text-slate-600 dark:text-slate-400">{isEn ? 'Settled Operations' : 'Operaciones Liquidadas'}</span>
+              <span className="font-bold text-[#00A3E0] font-mono text-sm">{metrics.operacionesLiquidadas}</span>
             </div>
           </div>
         </div>
@@ -452,28 +372,38 @@ export const ExecutiveSummaryView: React.FC<ExecutiveSummaryViewProps> = ({
         <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-xl border border-slate-800 p-5 space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-400 pb-2 border-b border-slate-800 flex items-center gap-1.5">
             <TrendingUp className="w-4 h-4 text-cyan-400" />
-            Fórmulas Oficiales de Ganancia & Rentabilidad
+            {isEn ? 'Official Profit & Margin Formulas' : 'Fórmulas Oficiales de Ganancia & Rentabilidad'}
           </h3>
 
           <div className="space-y-3 text-xs">
             <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Ingresos Totales:</span>
+              <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">
+                {isEn ? 'Total Revenue:' : 'Ingresos Totales:'}
+              </span>
               <code className="text-cyan-300 font-mono text-[11px] block">
-                Ingresos Totales = Venta + Ingreso de Muelle
+                {isEn ? 'Total Revenue = Sales + Dockage + Overnight Fees' : 'Ingresos Totales = Venta + Muelle + Pernota'}
               </code>
             </div>
 
             <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Utilidad Operativa:</span>
-              <code className="text-emerald-300 font-mono text-[11px] block">
-                Utilidad Operativa = Ingresos Totales − Costo Proveedor (con Over) − Comisión Vendedor
+              <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">
+                {isEn ? 'Operating Profit:' : 'Utilidad Operativa:'}
+              </span>
+              <code className="text-sky-300 font-mono text-[11px] block">
+                {isEn
+                  ? 'Operating Profit = Total Revenue − Vendor Cost (with Over) − Promoter Commission'
+                  : 'Utilidad Operativa = Ingresos Totales − Costo Proveedor (con Over) − Comisión Vendedor'}
               </code>
             </div>
 
             <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700">
-              <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Margen Operativo:</span>
+              <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">
+                {isEn ? 'Operating Margin:' : 'Margen Operativo:'}
+              </span>
               <code className="text-amber-300 font-mono text-[11px] block">
-                Margen % = (Utilidad Operativa / Ingresos Totales) × 100
+                {isEn
+                  ? 'Margin % = (Operating Profit / Total Revenue) × 100'
+                  : 'Margen % = (Utilidad Operativa / Ingresos Totales) × 100'}
               </code>
             </div>
           </div>

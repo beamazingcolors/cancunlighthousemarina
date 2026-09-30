@@ -6,13 +6,11 @@ import {
   FileCheck2, 
   CheckCircle2, 
   X, 
-  ExternalLink, 
   KeyRound, 
-  Server,
   Award,
-  BadgeAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface SecurityCertificatesModalProps {
   isOpen: boolean;
@@ -23,6 +21,9 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
   isOpen,
   onClose
 }) => {
+  const { language } = useLanguage();
+  const isEn = language === 'en';
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -36,52 +37,62 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
   const certificates = [
     {
       id: 'ssl-tls',
-      title: 'Cifrado SSL 256-Bit TLS 1.3 & SHA-256',
-      authority: 'Certificado de Seguridad Criptográfica Global',
-      badge: 'Criptografía Activa',
+      title: isEn ? '256-Bit SSL Encryption TLS 1.3 & SHA-256' : 'Cifrado SSL 256-Bit TLS 1.3 & SHA-256',
+      authority: isEn ? 'Global Cryptographic Security Certificate' : 'Certificado de Seguridad Criptográfica Global',
+      badge: isEn ? 'Active Cryptography' : 'Criptografía Activa',
       badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
       icon: Lock,
-      description: 'Toda la transferencia de datos financieros y operativos entre el cliente y Google Cloud Platform está protegida con cifrado de grado bancario TLS 1.3 y algoritmos de autenticación SHA-256.',
-      spec: 'Protocolo TLS 1.3 / AES-256-GCM / Digest SHA-256'
+      description: isEn 
+        ? 'All financial and operational data transfer between client and Google Cloud Platform is protected with bank-grade TLS 1.3 encryption and SHA-256 authentication algorithms.'
+        : 'Toda la transferencia de datos financieros y operativos entre el cliente y Google Cloud Platform está protegida con cifrado de grado bancario TLS 1.3 y algoritmos de autenticación SHA-256.',
+      spec: isEn ? 'TLS 1.3 Protocol / AES-256-GCM / SHA-256 Digest' : 'Protocolo TLS 1.3 / AES-256-GCM / Digest SHA-256'
     },
     {
       id: 'sct-marina',
-      title: 'Normativa SCT & Capitanía de Puerto México',
-      authority: 'Regulación de Marina Mercante & Atraque Turístico',
-      badge: 'Cumplimiento 2026',
+      title: isEn ? 'SCT & Mexico Port Captaincy Regulations' : 'Normativa SCT & Capitanía de Puerto México',
+      authority: isEn ? 'Merchant Marine & Tourist Docking Regulation' : 'Regulación de Marina Mercante & Atraque Turístico',
+      badge: isEn ? '2026 Compliance' : 'Cumplimiento 2026',
       badgeColor: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
       icon: Anchor,
-      description: 'El registro de folios, cálculo de tiempos de zarpe/desembarque y cobranza por concepto de muellaje se apega al reglamento oficial para embarcaciones turísticas y yates privados de Cancún e Isla Mujeres.',
-      spec: 'Capitanía de Puerto Cancún • Zona Hotelera Km 4.5'
+      description: isEn
+        ? 'Slip registration, departure/docking time calculations, and dock fee collection comply with official regulations for tourist vessels and private yachts in Cancun and Isla Mujeres.'
+        : 'El registro de folios, cálculo de tiempos de zarpe/desembarque y cobranza por concepto de muellaje se apega al reglamento oficial para embarcaciones turísticas y yates privados de Cancún e Isla Mujeres.',
+      spec: isEn ? 'Cancun Port Captaincy • Hotel Zone Km 4.5' : 'Capitanía de Puerto Cancún • Zona Hotelera Km 4.5'
     },
     {
       id: 'safe-harbor',
       title: 'Safe Maritime Harbor Protocol 2026',
-      authority: 'Estándar Internacional de Seguridad Náutica',
-      badge: 'Verificado',
+      authority: isEn ? 'International Nautical Safety Standard' : 'Estándar Internacional de Seguridad Náutica',
+      badge: isEn ? 'Verified' : 'Verificado',
       badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
       icon: Award,
-      description: 'Validación de seguros de responsabilidad civil de proveedores, cupos máximos permitidos por eslora (PAX adultos, niños e infantes) y protocolos de salvavidas vigentes.',
-      spec: 'Safe Harbor Marina Standard • Auditoría Continua'
+      description: isEn
+        ? 'Validation of vendor civil liability insurance, maximum passenger capacity allowed by vessel length (adult, child, infant PAX), and active life jacket protocols.'
+        : 'Validación de seguros de responsabilidad civil de proveedores, cupos máximos permitidos por eslora (PAX adultos, niños e infantes) y protocolos de salvavidas vigentes.',
+      spec: isEn ? 'Safe Harbor Marina Standard • Continuous Audit' : 'Safe Harbor Marina Standard • Auditoría Continua'
     },
     {
       id: 'sat-fiscal',
-      title: 'Auditoría Fiscal de Ingresos & IVA',
-      authority: 'Control Financiero & Conciliación SAT',
-      badge: 'Conciliación Automática',
+      title: isEn ? 'Fiscal Audit of Income & VAT' : 'Auditoría Fiscal de Ingresos & IVA',
+      authority: isEn ? 'Financial Control & SAT Tax Reconciliation' : 'Control Financiero & Conciliación SAT',
+      badge: isEn ? 'Automated Reconciliation' : 'Conciliación Automática',
       badgeColor: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
       icon: FileCheck2,
-      description: 'Estructuración estandarizada para comisiones netas de vendedores, retención de comisiones de casa y separación contable del impuesto por derecho de muelle no gravable.',
-      spec: 'Código Fiscal Federal • Reporte Semanal Auditado'
+      description: isEn
+        ? 'Standardized structure for sales reps net commissions, house commission withholding, and non-taxable dock fee accounting separation.'
+        : 'Estructuración estandarizada para comisiones netas de vendedores, retención de comisiones de casa y separación contable del impuesto por derecho de muelle no gravable.',
+      spec: isEn ? 'Federal Tax Code • Weekly Audited Report' : 'Código Fiscal Federal • Reporte Semanal Auditado'
     },
     {
       id: 'rate-limit',
-      title: 'Protección Anti Fuerza Bruta & Rate Limiting',
-      authority: 'Sistema de Defensa Perimetral Activa',
-      badge: 'Escudo Activo',
+      title: isEn ? 'Anti-Brute Force Protection & Rate Limiting' : 'Protección Anti Fuerza Bruta & Rate Limiting',
+      authority: isEn ? 'Active Perimeter Defense System' : 'Sistema de Defensa Perimetral Activa',
+      badge: isEn ? 'Active Shield' : 'Escudo Activo',
       badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
       icon: KeyRound,
-      description: 'Detección automática de intentos no autorizados de acceso, límite de 5 intentos con bloqueo exponencial temporal y protección contra saturación de sincronización.',
+      description: isEn
+        ? 'Automatic detection of unauthorized access attempts, 5-attempt threshold with exponential lockout, and sync saturation protection.'
+        : 'Detección automática de intentos no autorizados de acceso, límite de 5 intentos con bloqueo exponencial temporal y protección contra saturación de sincronización.',
       spec: '5 Max Tries • Timing Jitter Defense • Multi-session Check'
     }
   ];
@@ -109,10 +120,10 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
               </div>
               <div>
                 <h2 className="text-lg sm:text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                  <span>Certificaciones & Sellos de Confianza</span>
+                  <span>{isEn ? 'Certifications & Trust Badges' : 'Certificaciones & Sellos de Confianza'}</span>
                 </h2>
                 <p className="text-xs text-slate-300 mt-0.5">
-                  Cancun Lighthouse Marina • Auditoría y Seguridad Operativa 2026
+                  {isEn ? 'Cancun Lighthouse Marina • 2026 Audit & Operational Security' : 'Cancun Lighthouse Marina • Auditoría y Seguridad Operativa 2026'}
                 </p>
               </div>
             </div>
@@ -120,7 +131,7 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition cursor-pointer relative z-10"
-              title="Cerrar modal"
+              title={isEn ? 'Close modal' : 'Cerrar modal'}
             >
               <X className="w-5 h-5" />
             </button>
@@ -131,7 +142,9 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
             <div className="p-3.5 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/60 rounded-xl text-xs text-sky-900 dark:text-sky-200 flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-[#00A3E0] shrink-0 mt-0.5" />
               <p className="leading-relaxed">
-                Este portal opera bajo estrictas políticas de integridad de datos y confidencialidad financiera marítima. Todas las operaciones y transacciones se registran con firma de tiempo y validación criptográfica.
+                {isEn
+                  ? 'This portal operates under strict data integrity and maritime financial confidentiality policies. All operations and transactions are timestamped and cryptographically verified.'
+                  : 'Este portal opera bajo estrictas políticas de integridad de datos y confidencialidad financiera marítima. Todas las operaciones y transacciones se registran con firma de tiempo y validación criptográfica.'}
               </p>
             </div>
 
@@ -170,7 +183,7 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
                     <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 pt-1 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
                       <span>{cert.spec}</span>
                       <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" /> Estado: Válido 2026
+                        <CheckCircle2 className="w-3 h-3" /> {isEn ? 'Status: Valid 2026' : 'Estado: Válido 2026'}
                       </span>
                     </div>
                   </div>
@@ -182,13 +195,13 @@ export const SecurityCertificatesModal: React.FC<SecurityCertificatesModalProps>
           {/* Footer */}
           <div className="p-4 bg-slate-100 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500 dark:text-slate-400">
             <span className="text-center sm:text-left">
-              ID de Sistema: <strong className="text-slate-700 dark:text-slate-200 font-mono">CLM-SEC-2026-PROD</strong>
+              {isEn ? 'System ID:' : 'ID de Sistema:'} <strong className="text-slate-700 dark:text-slate-200 font-mono">CLM-SEC-2026-PROD</strong>
             </span>
             <button
               onClick={onClose}
               className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[#002147] hover:bg-[#002b5c] dark:bg-[#00A3E0] dark:hover:bg-[#008ec4] text-white font-semibold transition cursor-pointer"
             >
-              Entendido
+              {isEn ? 'Understood' : 'Entendido'}
             </button>
           </div>
         </motion.div>

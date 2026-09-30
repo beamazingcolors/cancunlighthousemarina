@@ -9,11 +9,17 @@ import {
   Calendar,
   Sparkles,
   Layers,
-  Calculator
+  Calculator,
+  Globe,
+  LogOut,
+  Crown,
+  UserCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FilterState } from '../types/marina';
 import { OfficialLogoMark } from './OfficialLogo';
+import { useLanguage } from '../context/LanguageContext';
+import { UserAccount } from '../utils/security';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -28,6 +34,9 @@ interface MobileDrawerProps {
   onOpenCertificates: () => void;
   isLive: boolean;
   lastFetched: Date;
+  onOpenCalendar?: (mode?: 'days' | 'weeks') => void;
+  currentUser?: UserAccount | null;
+  onLogoutClick?: () => void;
 }
 
 export const MobileDrawer: React.FC<MobileDrawerProps> = ({
@@ -42,8 +51,13 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
   onOpenGuide,
   onOpenCertificates,
   isLive,
-  lastFetched
+  lastFetched,
+  onOpenCalendar,
+  currentUser,
+  onLogoutClick
 }) => {
+  const { language, setLanguage, t, l } = useLanguage();
+
   if (!isOpen) return null;
 
   return (
@@ -71,7 +85,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   <span>CANCUN</span>
                   <span className="text-[#00A3E0]">LIGHTHOUSE</span>
                 </div>
-                <p className="text-[9px] font-semibold tracking-widest text-sky-200">MARINA</p>
+                <p className="text-[9px] font-semibold tracking-widest text-sky-200">{t.brandMarina}</p>
               </div>
             </div>
 
@@ -84,14 +98,62 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
           </div>
 
           {/* Drawer Body Items */}
-          <div className="p-4 space-y-5 flex-1">
-            {/* Week Selector in Drawer */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block flex items-center gap-1.5">
+          <div className="p-4 space-y-4 flex-1">
+            {/* Language Selector in Drawer */}
+            <div className="space-y-1.5 p-3 rounded-xl bg-white/5 border border-white/10">
+              <label className="text-[10px] font-bold text-sky-300 uppercase tracking-wider block flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-[#00A3E0]" />
+                <span>{l('Idioma del Sistema', 'System Language')}</span>
+              </label>
+              <div className="grid grid-cols-2 gap-1.5 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setLanguage('es')}
+                  className={`py-1.5 px-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    language === 'es'
+                      ? 'bg-[#00A3E0] text-white shadow-sm ring-1 ring-white/30'
+                      : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span>🇲🇽</span>
+                  <span>Español</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLanguage('en')}
+                  className={`py-1.5 px-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    language === 'en'
+                      ? 'bg-[#00A3E0] text-white shadow-sm ring-1 ring-white/30'
+                      : 'bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span>🇺🇸</span>
+                  <span>English</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Location context card */}
+            <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs">
+              <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider block">
+                {l('Punto de Venta Oficial', 'Official Sales Point')}
+              </span>
+              <p className="text-white font-semibold text-xs mt-0.5">
+                Plaza La Isla Cancún, Quintana Roo
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                {l('Módulo de ventas de tours náuticos y servicios', 'Sales booth for nautical tours and private charters')}
+              </p>
+            </div>
+
+            {/* Week Quick Selector Dropdown */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-sky-300 uppercase tracking-wider block flex items-center gap-1.5 pt-1">
                 <Calendar className="w-3.5 h-3.5 text-[#00A3E0]" />
-                <span>Semana ({new Date().getFullYear()})</span>
+                <span>{t.filterByWeek}</span>
               </label>
               <select
+                id="drawer-week-select"
                 value={filters.semana}
                 onChange={(e) => {
                   onFilterChange('semana', e.target.value);
@@ -99,19 +161,61 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 }}
                 className="w-full bg-[#002147] text-white text-xs font-semibold py-2 px-3 rounded-xl border border-[#00A3E0]/40 focus:ring-2 focus:ring-[#00A3E0] cursor-pointer"
               >
-                <option value="ALL">Todas las Semanas {new Date().getFullYear()}</option>
+                <option value="ALL">{t.allWeeks}</option>
                 {availableWeeks.map(w => (
                   <option key={w} value={w}>
-                    Semana {w} ({new Date().getFullYear()})
+                    {t.week} {w}
                   </option>
                 ))}
               </select>
             </div>
 
+            {/* Active User Card & Logout in Drawer */}
+            {currentUser && (
+              <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider">
+                    {l('Usuario Conectado', 'Connected User')}
+                  </span>
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                    currentUser.role === 'superadmin'
+                      ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                      : 'bg-cyan-400/20 text-cyan-200 border border-cyan-400/30'
+                  }`}>
+                    {currentUser.role === 'superadmin' ? '★ SUPER ADMIN' : 'USUARIO'}
+                  </span>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[#00A3E0]">
+                    {currentUser.role === 'superadmin' ? <Crown className="w-4 h-4 text-amber-400" /> : <UserCheck className="w-4 h-4 text-cyan-400" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-white truncate">{currentUser.name}</p>
+                    <p className="text-[10px] text-slate-400 font-mono truncate">{currentUser.email}</p>
+                  </div>
+                </div>
+
+                {onLogoutClick && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onLogoutClick();
+                    }}
+                    className="w-full mt-1 py-2 px-3 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 active:scale-95 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>{l('Cerrar Sesión', 'Sign Out')}</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Quick Actions List */}
             <div className="space-y-2">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Acciones Rápidas
+                {l('Acciones Rápidas', 'Quick Actions')}
               </span>
 
               {/* Refresh */}
@@ -125,7 +229,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               >
                 <div className="flex items-center space-x-2.5">
                   <RefreshCw className={`w-4 h-4 text-[#00A3E0] ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>Sincronizar Datos</span>
+                  <span>{l('Sincronizar Datos', 'Sync Data')}</span>
                 </div>
                 <span className="text-[10px] text-slate-400 font-mono">
                   {isLive ? 'Online' : 'Local'}
@@ -141,7 +245,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 className="w-full flex items-center space-x-2.5 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold transition cursor-pointer"
               >
                 <Download className="w-4 h-4 text-emerald-400" />
-                <span>Exportar Reporte en CSV</span>
+                <span>{l('Exportar Reporte en CSV', 'Export CSV Report')}</span>
               </button>
 
               {/* Guide */}
@@ -153,7 +257,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 className="w-full flex items-center space-x-2.5 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold transition cursor-pointer"
               >
                 <BookOpen className="w-4 h-4 text-cyan-400" />
-                <span>Guía de Llenado & Fórmulas</span>
+                <span>{t.guideAndFormulas}</span>
               </button>
 
               {/* Certificates */}
@@ -166,7 +270,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               >
                 <div className="flex items-center space-x-2.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Seguridad & Cumplimiento Marítimo Oficial</span>
+                  <span>{l('Seguridad & Cumplimiento Marítimo Oficial', 'Safety & Maritime Compliance')}</span>
                 </div>
                 <span className="text-[10px] text-emerald-400/80 font-mono">
                   SCT • SSL
@@ -184,7 +288,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               >
                 <div className="flex items-center space-x-2">
                   <ExternalLink className="w-4 h-4" />
-                  <span>Abrir Google Sheet Público</span>
+                  <span>{l('Abrir Google Sheet Público', 'Open Public Google Sheet')}</span>
                 </div>
                 <span className="text-[10px]">↗</span>
               </a>
@@ -193,7 +297,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
 
           {/* Drawer Footer info */}
           <div className="p-4 bg-[#001026] border-t border-white/10 text-center text-[10px] text-slate-400">
-            <span>Cancun Lighthouse Marina • Sistema Operativo {new Date().getFullYear()}</span>
+            <span>Cancun Lighthouse Marina • {l('Sistema Operativo', 'Operating System')} {new Date().getFullYear()}</span>
           </div>
         </motion.div>
       </div>

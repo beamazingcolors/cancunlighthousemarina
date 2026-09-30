@@ -20,6 +20,7 @@ import { motion } from 'motion/react';
 import { ExecutiveMetrics, DetailedFinancialMetrics, FilterState, CurrencyDisplayMode } from '../types/marina';
 import { formatCurrencyMXN, formatCurrencyUSD, formatPercent, formatNumber } from '../utils/formatters';
 import { OfficialLogoMark } from './OfficialLogo';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeroSectionProps {
   metrics: ExecutiveMetrics;
@@ -28,7 +29,7 @@ interface HeroSectionProps {
   onFilterChange: (key: keyof FilterState, value: string) => void;
   availableWeeks: string[];
   activeTab: string;
-  onTabChange: (tab: 'dashboard' | 'operations' | 'executive' | 'calculator') => void;
+  onTabChange: (tab: 'dashboard' | 'operations' | 'executive' | 'calendar') => void;
   onOpenCertificates: () => void;
   onExportCSV: () => void;
   currencyMode: CurrencyDisplayMode;
@@ -50,6 +51,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onCurrencyModeChange,
   onOpenReconciliation
 }) => {
+  const { l, t } = useLanguage();
+
   return (
     <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#002147] via-[#002e62] to-[#001733] text-white p-5 sm:p-8 border border-white/10 shadow-xl">
       {/* Background Animated Dynamic Atmosphere */}
@@ -90,7 +93,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#00A3E0]/20 border border-[#00A3E0]/40 text-xs font-semibold text-[#66d2ff]"
             >
               <OfficialLogoMark className="w-4 h-4 text-[#00A3E0]" color="#00A3E0" />
-              <span>Portal de Operaciones Marítimas 2026</span>
+              <span>{l('Portal de Operaciones Marítimas 2026', 'Maritime Operations Portal 2026')}</span>
             </motion.div>
           </div>
 
@@ -109,7 +112,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             transition={{ delay: 0.1 }}
             className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl"
           >
-            Control integral de zarpes, bitácoras de yates de lujo, cálculo exacto de muellaje, comisiones y rentabilidad consolidada en tiempo real.
+            {t.heroSubtitle}
           </motion.p>
 
           {/* Quick Action Navigation Buttons */}
@@ -119,7 +122,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               className="px-4 py-2 bg-[#00A3E0] hover:bg-[#008ec4] active:scale-95 text-white text-xs font-bold rounded-xl shadow-lg shadow-[#00A3E0]/30 transition flex items-center gap-1.5 cursor-pointer"
             >
               <Layers className="w-4 h-4" />
-              <span>Explorar Operaciones</span>
+              <span>{l('Explorar Operaciones', 'Explore Operations')}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
 
@@ -128,7 +131,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               className="px-4 py-2 bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold rounded-xl border border-white/15 transition flex items-center gap-1.5 cursor-pointer"
             >
               <Calendar className="w-4 h-4 text-[#00A3E0]" />
-              <span>Reporte Ejecutivo Semanal</span>
+              <span>{l('Reporte Ejecutivo Semanal', 'Weekly Executive Report')}</span>
             </button>
 
             {onOpenReconciliation && (
@@ -136,21 +139,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 id="btn-hero-reconciliation"
                 onClick={onOpenReconciliation}
                 className="px-3.5 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 active:scale-95 text-xs font-semibold rounded-xl border border-emerald-400/40 transition flex items-center gap-1.5 cursor-pointer shadow-sm"
-                title="Comparativa matemática exacta de filas y columnas vs Google Sheet"
+                title={l('Comparativa matemática exacta de filas y columnas vs Google Sheet', 'Exact mathematical reconciliation of rows and columns vs Google Sheet')}
               >
                 <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-                <span>Auditoría Google Sheet</span>
-                <span className="text-[10px] px-1.5 py-0.2 bg-emerald-400 text-slate-950 font-bold rounded-full">100% Exacto</span>
+                <span>{l('Auditoría Google Sheet', 'Google Sheet Audit')}</span>
+                <span className="text-[10px] px-1.5 py-0.2 bg-emerald-400 text-slate-950 font-bold rounded-full">{l('100% Exacto', '100% Exact')}</span>
               </button>
             )}
 
             <button
               onClick={onExportCSV}
               className="px-3.5 py-2 bg-white/10 hover:bg-white/20 active:scale-95 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-white/15 transition flex items-center gap-1.5 cursor-pointer"
-              title="Descargar base de datos completa en formato CSV"
+              title={l('Descargar base de datos completa en formato CSV', 'Download entire dataset in CSV format')}
             >
               <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Exportar CSV</span>
+              <span className="hidden sm:inline">{l('Exportar CSV', 'Export CSV')}</span>
             </button>
           </div>
         </div>
@@ -168,11 +171,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="flex items-center space-x-2">
               <Compass className="w-4 h-4 text-[#00A3E0] animate-spin" style={{ animationDuration: '16s' }} />
               <span className="text-xs font-bold uppercase tracking-wider text-white">
-                Resumen Activo
+                {l('Resumen Activo', 'Active Summary')}
               </span>
             </div>
             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#00A3E0] text-white">
-              {filters.semana === 'ALL' ? `Año ${new Date().getFullYear()}` : `Sem ${filters.semana}`}
+              {filters.semana === 'ALL' ? `${l('Año', 'Year')} ${new Date().getFullYear()}` : `${l('Sem', 'Wk')} ${filters.semana}`}
             </span>
           </div>
 
@@ -186,9 +189,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   ? 'bg-[#00A3E0] text-white shadow-xs'
                   : 'text-slate-300 hover:text-white'
               }`}
-              title="Dame todo en pesos: Convierte valores según el tipo de cambio de cada fila"
+              title={l('Dame todo en pesos: Convierte valores según el tipo de cambio de cada fila', 'All in pesos: Converts values using each row exchange rate')}
             >
-              💵 En Pesos
+              {l('💵 En Pesos', '💵 In Pesos')}
             </button>
             <button
               type="button"
@@ -198,9 +201,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   ? 'bg-[#00A3E0] text-white shadow-xs'
                   : 'text-slate-300 hover:text-white'
               }`}
-              title="Dólares y pesos: Desglose en detalle de cuántos USD y cuántos MXN"
+              title={l('Dólares y pesos: Desglose en detalle de cuántos USD y cuántos MXN', 'Dollars and pesos: Detailed breakdown of USD and MXN')}
             >
-              🔄 USD & MXN
+              {l('🔄 USD & MXN', '🔄 USD & MXN')}
             </button>
             <button
               type="button"
@@ -210,9 +213,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   ? 'bg-[#00A3E0] text-white shadow-xs'
                   : 'text-slate-300 hover:text-white'
               }`}
-              title="Ver todo expresado en Dólares"
+              title={l('Ver todo expresado en Dólares', 'See everything in US Dollars')}
             >
-              💲 Solo USD
+              {l('💲 Solo USD', '💲 USD Only')}
             </button>
           </div>
 
@@ -222,9 +225,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="bg-emerald-950/40 border border-emerald-500/30 p-2.5 rounded-xl">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-emerald-300 font-bold uppercase tracking-wider">
-                  Utilidad Neta (Muelle + Over + Casa)
+                  {l('Utilidad Neta (Muelle + Over + Casa)', 'Net Operating Profit (Dock + Over + House)')}
                 </span>
-                <span className="text-[10px] text-emerald-400 font-mono">Marina</span>
+                <span className="text-[10px] text-emerald-400 font-mono">{l('Marina', 'Marina')}</span>
               </div>
 
               {currencyMode === 'all_mxn' && (
@@ -233,7 +236,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     {formatCurrencyMXN(detailedMetrics.totalUtilidadNetaMXN)}
                   </span>
                   <span className="text-[10px] text-emerald-400/80">
-                    Muelle: {formatCurrencyMXN(detailedMetrics.totalMuelleMXN)} + Over: {formatCurrencyMXN(detailedMetrics.totalOverMXN)} + Casa: {formatCurrencyMXN(detailedMetrics.totalCasaMXN)}
+                    {l('Muelle', 'Dock')}: {formatCurrencyMXN(detailedMetrics.totalMuelleMXN)} + Over: {formatCurrencyMXN(detailedMetrics.totalOverMXN)} + {l('Casa', 'House')}: {formatCurrencyMXN(detailedMetrics.totalCasaMXN)}
                   </span>
                 </div>
               )}
@@ -241,13 +244,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               {currencyMode === 'split' && (
                 <div className="mt-1 grid grid-cols-2 gap-2 text-[11px]">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Dólares (USD):</span>
+                    <span className="text-[10px] text-slate-400 block">{l('Dólares (USD):', 'US Dollars (USD):')}</span>
                     <span className="text-sm font-black text-emerald-300 font-mono">
                       {formatCurrencyUSD(detailedMetrics.usdTotalUtilidadNeta)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Pesos (MXN):</span>
+                    <span className="text-[10px] text-slate-400 block">{l('Pesos (MXN):', 'Mexican Pesos (MXN):')}</span>
                     <span className="text-sm font-black text-white font-mono">
                       {formatCurrencyMXN(detailedMetrics.mxnTotalUtilidadNeta)}
                     </span>
@@ -265,7 +268,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     )}
                   </span>
                   <span className="text-[10px] text-slate-300">
-                    Equivalente al TC promedio de ${detailedMetrics.promedioTipoCambio.toFixed(2)} MXN
+                    {l('Equivalente al TC promedio de', 'Equivalent to weighted FX rate of')} ${detailedMetrics.promedioTipoCambio.toFixed(2)} MXN
                   </span>
                 </div>
               )}
@@ -275,9 +278,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="bg-amber-950/30 border border-amber-500/30 p-2.5 rounded-xl">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-amber-300 font-bold uppercase tracking-wider">
-                  Utilidad de Vendedores (Comisión)
+                  {l('Utilidad de Vendedores (Comisión)', 'Promoters Yield (Commissions)')}
                 </span>
-                <span className="text-[10px] text-amber-400 font-mono">Promotores</span>
+                <span className="text-[10px] text-amber-400 font-mono">{l('Promotores', 'Promoters')}</span>
               </div>
 
               {currencyMode === 'all_mxn' && (
@@ -286,7 +289,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     {formatCurrencyMXN(detailedMetrics.totalComisionesVendedoresMXN)}
                   </span>
                   <span className="text-[10px] text-amber-300/80">
-                    Suma total de comisiones repartidas
+                    {l('Suma total de comisiones repartidas', 'Total sum of distributed commissions')}
                   </span>
                 </div>
               )}
@@ -294,13 +297,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               {currencyMode === 'split' && (
                 <div className="mt-1 grid grid-cols-2 gap-2 text-[11px]">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Dólares (USD):</span>
+                    <span className="text-[10px] text-slate-400 block">{l('Dólares (USD):', 'US Dollars (USD):')}</span>
                     <span className="text-sm font-black text-amber-300 font-mono">
                       {formatCurrencyUSD(detailedMetrics.usdTotalComisiones)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Pesos (MXN):</span>
+                    <span className="text-[10px] text-slate-400 block">{l('Pesos (MXN):', 'Mexican Pesos (MXN):')}</span>
                     <span className="text-sm font-black text-white font-mono">
                       {formatCurrencyMXN(detailedMetrics.mxnTotalComisiones)}
                     </span>
@@ -318,7 +321,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     )}
                   </span>
                   <span className="text-[10px] text-slate-300">
-                    Total comisiones expresadas en USD
+                    {l('Total comisiones expresadas en USD', 'Total commissions expressed in USD')}
                   </span>
                 </div>
               )}
@@ -327,14 +330,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             {/* 3. Resto de análisis: Ingresos vs Costos y Tipo de Cambio */}
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-black/30 p-2 rounded-xl border border-white/5">
-                <span className="text-[10px] text-slate-400 block uppercase font-semibold">Ingresos Brutos</span>
+                <span className="text-[10px] text-slate-400 block uppercase font-semibold">{l('Ingresos Brutos', 'Gross Revenue')}</span>
                 <span className="text-xs font-bold text-white">
                   {formatCurrencyMXN(detailedMetrics.totalIngresosBrutosMXN)}
                 </span>
               </div>
               <div className="bg-black/30 p-2 rounded-xl border border-white/5">
-                <span className="text-[10px] text-rose-300 block uppercase font-semibold">Costos Directos</span>
-                <span className="text-xs font-bold text-rose-400">
+                <span className="text-[10px] text-slate-400 block uppercase font-semibold">{l('Costos Directos', 'Direct Costs')}</span>
+                <span className="text-xs font-bold text-white font-mono">
                   {formatCurrencyMXN(detailedMetrics.totalCostosDirectosMXN)}
                 </span>
               </div>
@@ -344,13 +347,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           {/* Footer of Resumen Activo: TC Analysis and Net Margin */}
           <div className="text-[11px] text-slate-300/90 pt-2 border-t border-white/10 space-y-1">
             <div className="flex items-center justify-between">
-              <span>Tipo de Cambio Ponderado:</span>
+              <span>{l('Tipo de Cambio Ponderado:', 'Weighted Exchange Rate:')}</span>
               <span className="font-mono font-bold text-sky-300">
                 1 USD = ${detailedMetrics.promedioTipoCambio.toFixed(2)} MXN
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span>Margen Neto Marina:</span>
+              <span>{l('Margen Neto Marina:', 'Net Marina Margin:')}</span>
               <span className="font-bold text-emerald-300">
                 {detailedMetrics.margenUtilidadNeta.toFixed(1)}%
               </span>

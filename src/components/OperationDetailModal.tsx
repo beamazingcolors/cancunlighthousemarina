@@ -17,6 +17,7 @@ import {
 import { OperationRecord } from '../types/marina';
 import { formatCurrencyMXN, formatCurrencySimple, formatPercent } from '../utils/formatters';
 import { calculateExpectedMuelle } from '../utils/paxUtils';
+import { useLanguage } from '../context/LanguageContext';
 
 interface OperationDetailModalProps {
   record: OperationRecord | null;
@@ -27,6 +28,8 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
   record,
   onClose
 }) => {
+  const { l, t } = useLanguage();
+
   if (!record) return null;
 
   const expectedMuelle = calculateExpectedMuelle(record.pax.total, record.horas);
@@ -64,10 +67,10 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
                     ? 'bg-emerald-900/60 text-emerald-300 border border-emerald-700'
                     : 'bg-amber-900/60 text-amber-300 border border-amber-700'
                 }`}>
-                  {record.estatusCobro}
+                  {record.estatusCobro === 'Liquidado' ? l('Liquidado', 'Settled / Paid') : l('Pendiente', 'Pending')}
                 </span>
                 <span className="text-xs text-slate-300 font-medium">
-                  Semana {record.semana} ({new Date().getFullYear()})
+                  {t.week} {record.semana} ({new Date().getFullYear()})
                 </span>
               </div>
               <h2 className="text-base font-bold text-white mt-1">
@@ -89,7 +92,7 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
           {/* Key metadata chips */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-xs">
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Fecha Operación</span>
+              <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">{l('Fecha Operación', 'Operation Date')}</span>
               <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1 mt-0.5">
                 <Calendar className="w-3.5 h-3.5 text-[#00A3E0]" />
                 {record.diaOperacion}
@@ -97,7 +100,7 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
             </div>
 
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Locación</span>
+              <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">{l('Locación', 'Location')}</span>
               <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1 mt-0.5">
                 <MapPin className="w-3.5 h-3.5 text-[#002147] dark:text-sky-300" />
                 {record.locacion}
@@ -105,7 +108,7 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
             </div>
 
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Promotor</span>
+              <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">{l('Promotor', 'Promoter')}</span>
               <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1 mt-0.5 truncate">
                 <User className="w-3.5 h-3.5 text-indigo-400" />
                 {record.promotor}
@@ -113,10 +116,10 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
             </div>
 
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Proveedor</span>
+              <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">{l('Proveedor', 'Vendor')}</span>
               <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1 mt-0.5 truncate">
                 <Ship className="w-3.5 h-3.5 text-cyan-400" />
-                {record.proveedor || 'Propio'}
+                {record.proveedor || l('Propio', 'Direct')}
               </span>
             </div>
           </div>
@@ -126,30 +129,30 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-[#002147] dark:text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Users className="w-4 h-4 text-[#002147] dark:text-sky-300" />
-                Desglose PAX & Tarifa de Muellaje
+                {l('Desglose PAX & Tarifa de Muellaje', 'PAX Breakdown & Dockage Fee')}
               </span>
               <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-sky-200 dark:border-slate-700 text-slate-800 dark:text-slate-200">
-                Código: {record.paxRaw || record.pax.total}
+                {l('Código', 'Code')}: {record.paxRaw || record.pax.total}
               </span>
             </div>
 
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Adultos</span>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">{l('Adultos', 'Adults')}</span>
                 <span className="font-bold text-sm text-slate-900 dark:text-white">{record.pax.adults}</span>
               </div>
               <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Niños / Menores</span>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">{l('Niños / Menores', 'Children')}</span>
                 <span className="font-bold text-sm text-[#00A3E0]">{record.pax.children}</span>
               </div>
               <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Infantes</span>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">{l('Infantes', 'Infants')}</span>
                 <span className="font-bold text-sm text-purple-600 dark:text-purple-400">{record.pax.infants}</span>
               </div>
             </div>
 
             <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between pt-1 border-t border-sky-200/60 dark:border-slate-700">
-              <span>Muellaje Cobrado ({record.horas} hrs de renta):</span>
+              <span>{l('Muellaje Cobrado', 'Dock Fee Collected')} ({record.horas} {l('hrs de renta', 'hours')})</span>
               <span className="font-bold text-emerald-700 dark:text-emerald-400 font-mono text-sm">
                 +{formatCurrencyMXN(record.muelle)}
               </span>
@@ -160,54 +163,54 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
           <div className="space-y-2">
             <h3 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
               <DollarSign className="w-4 h-4 text-emerald-600" />
-              Desglose Financiero & Reparto de Utilidad
+              {l('Desglose Financiero & Reparto de Utilidad', 'Financial Breakdown & Profit Distribution')}
             </h3>
 
             <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-200 dark:divide-slate-700 text-xs">
               <div className="p-3 flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Precio Venta Registrado:</span>
+                <span className="text-slate-600 dark:text-slate-400">{l('Precio Venta Registrado:', 'Customer Sale Price:')}</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {formatCurrencySimple(record.venta, record.moneda)}
                 </span>
               </div>
 
               <div className="p-3 flex justify-between">
-                <span className="text-slate-600 dark:text-slate-400">Ingresos Totales (Venta + Muelle):</span>
+                <span className="text-slate-600 dark:text-slate-400">{l('Ingresos Totales (Venta + Muelle):', 'Total Revenue (Sale + Dock):')}</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {formatCurrencyMXN(record.ingresosTotalesMXN)}
                 </span>
               </div>
 
               <div className="p-3 flex justify-between text-rose-700 dark:text-rose-400">
-                <span>Costo Proveedor Neto:</span>
+                <span>{l('Costo Proveedor Neto:', 'Net Provider Cost:')}</span>
                 <span className="font-mono font-bold">
                   {formatCurrencySimple(record.costoReporteNeto, record.moneda)}
                 </span>
               </div>
 
               <div className="p-3 flex justify-between text-slate-700 dark:text-slate-300">
-                <span>Over Empresa:</span>
+                <span>{l('Over Empresa:', 'Company Retained Over:')}</span>
                 <span className="font-mono font-bold">
                   {formatCurrencySimple(record.over, record.moneda)}
                 </span>
               </div>
 
               <div className="p-3 flex justify-between bg-slate-100 dark:bg-slate-800/90 font-semibold">
-                <span className="text-slate-800 dark:text-slate-200">Subtotal con Over (Costo Real):</span>
+                <span className="text-slate-800 dark:text-slate-200">{l('Subtotal con Over (Costo Real):', 'Subtotal with Over (Direct Cost):')}</span>
                 <span className="font-mono text-slate-900 dark:text-white">
                   {formatCurrencySimple(record.subtotalConOver, record.moneda)}
                 </span>
               </div>
 
               <div className="p-3 flex justify-between text-amber-700 dark:text-amber-400">
-                <span>Comisión Promotor / Vendedor:</span>
+                <span>{l('Comisión Promotor / Vendedor:', 'Promoter Commission (50%):')}</span>
                 <span className="font-mono font-bold">
                   {formatCurrencySimple(record.comision, record.moneda)}
                 </span>
               </div>
 
               <div className="p-3 flex justify-between text-[#002147] dark:text-sky-300 font-bold">
-                <span>Utilidad Casa (50% margen):</span>
+                <span>{l('Utilidad Casa (50% margen):', 'Marina Yield (50% margin):')}</span>
                 <span className="font-mono">
                   {formatCurrencySimple(record.casa, record.moneda)}
                 </span>
@@ -215,8 +218,8 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
 
               <div className="p-3.5 flex justify-between items-center bg-[#002147] text-white rounded-b-xl">
                 <div>
-                  <span className="text-[10px] uppercase tracking-wider block text-slate-300">Utilidad Operativa Total</span>
-                  <span className="font-bold text-emerald-400 text-sm">Margen: {formatPercent(record.margenOperativo)}</span>
+                  <span className="text-[10px] uppercase tracking-wider block text-slate-300">{l('Utilidad Operativa Total', 'Total Operating Profit')}</span>
+                  <span className="font-bold text-emerald-400 text-sm">{l('Margen:', 'Margin:')} {formatPercent(record.margenOperativo)}</span>
                 </div>
                 <span className="font-mono font-black text-lg text-emerald-300">
                   {formatCurrencyMXN(record.utilidadOperativaMXN)}
@@ -229,19 +232,19 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
           <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
             <h4 className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              Estado de Cobranza & Depósitos
+              {l('Estado de Cobranza & Depósitos', 'Collections & Settlement Status')}
             </h4>
             <div className="grid grid-cols-3 gap-2 text-center pt-1">
               <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Depósito Recibido</span>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">{l('Depósito Recibido', 'Deposit Paid')}</span>
                 <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">{formatCurrencySimple(record.deposito, record.moneda)}</span>
               </div>
               <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Balance Pendiente</span>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">{l('Balance Pendiente', 'Pending Balance')}</span>
                 <span className="font-mono font-bold text-amber-700 dark:text-amber-400">{formatCurrencySimple(record.balance, record.moneda)}</span>
               </div>
               <div className="bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-700">
-                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">Total Liquidado</span>
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px]">{l('Total Liquidado', 'Total Settled')}</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">{formatCurrencySimple(record.total, record.moneda)}</span>
               </div>
             </div>
@@ -250,7 +253,7 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
           {/* Notes */}
           {record.notas && (
             <div className="p-3.5 bg-amber-50/70 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900/60 text-xs">
-              <span className="font-bold text-amber-900 dark:text-amber-300 block mb-1">Notas de Bitácora / Operación:</span>
+              <span className="font-bold text-amber-900 dark:text-amber-300 block mb-1">{l('Notas de Bitácora / Operación:', 'Operational / Logbook Notes:')}</span>
               <p className="text-amber-800 dark:text-amber-200">{record.notas}</p>
             </div>
           )}
@@ -262,7 +265,7 @@ export const OperationDetailModal: React.FC<OperationDetailModalProps> = ({
             onClick={onClose}
             className="px-4 py-2 bg-[#002147] hover:bg-[#002b5c] active:scale-95 text-white text-xs font-bold rounded-lg transition cursor-pointer"
           >
-            Cerrar Ficha
+            {l('Cerrar Ficha', 'Close Voucher')}
           </button>
         </div>
       </div>

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { DetailedFinancialMetrics, CurrencyDisplayMode } from '../types/marina';
 import { formatCurrencyMXN, formatCurrencyUSD, formatPercent, formatNumber } from '../utils/formatters';
+import { useLanguage } from '../context/LanguageContext';
 
 interface IncomeExpenseDetailSectionProps {
   metrics: DetailedFinancialMetrics;
@@ -33,6 +34,8 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
   onCurrencyModeChange,
   selectedWeek
 }) => {
+  const { language, l } = useLanguage();
+
   // Percentages of revenue distribution
   const pctCostos = metrics.totalIngresosBrutosMXN > 0
     ? (metrics.totalCostosDirectosMXN / metrics.totalIngresosBrutosMXN) * 100
@@ -57,14 +60,16 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               <Scale className="w-4 h-4" />
             </div>
             <h2 className="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-              <span>Detalle Financiero de Ingresos & Egresos</span>
+              <span>{l('Detalle Financiero de Ingresos & Egresos', 'Financial Income & Expense Breakdown')}</span>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00A3E0] text-white">
-                {selectedWeek === 'ALL' ? `Acumulado ${new Date().getFullYear()}` : `Semana ${selectedWeek}`}
+                {selectedWeek === 'ALL' 
+                  ? (l(`Acumulado ${new Date().getFullYear()}`, `Cumulative ${new Date().getFullYear()}`)) 
+                  : (l(`Semana ${selectedWeek}`, `Week ${selectedWeek}`))}
               </span>
             </h2>
           </div>
           <p className="text-xs text-slate-300">
-            Conciliación de entradas por ventas y derechos de muelle frente a costos netos y comisiones de vendedores.
+            {l('Conciliación de entradas por ventas y derechos de muelle frente a costos netos y comisiones de vendedores.', 'Reconciliation of sales receipts and dockage fees against net costs and promoter commissions.')}
           </p>
         </div>
 
@@ -78,10 +83,10 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                 ? 'bg-[#00A3E0] text-white shadow-xs'
                 : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
-            title="Convertir todos los valores a Pesos Mexicanos usando el tipo de cambio de cada registro"
+            title={l('Convertir todos los valores a Pesos Mexicanos usando el tipo de cambio de cada registro', 'Convert all figures to Mexican Pesos using the exchange rate of each record')}
           >
             <Coins className="w-3.5 h-3.5" />
-            <span>Dame todo en Pesos</span>
+            <span>{l('Dame todo en Pesos', 'All in Pesos (MXN)')}</span>
           </button>
 
           <button
@@ -92,10 +97,10 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                 ? 'bg-[#00A3E0] text-white shadow-xs'
                 : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
-            title="Ver desglose detallado de cuántos Dólares (USD) y cuántos Pesos (MXN)"
+            title={l('Ver desglose detallado de cuántos Dólares (USD) y cuántos Pesos (MXN)', 'Detailed breakdown by USD and MXN')}
           >
             <DollarSign className="w-3.5 h-3.5" />
-            <span>Dólares y Pesos</span>
+            <span>{l('Dólares y Pesos', 'Dollars & Pesos')}</span>
           </button>
 
           <button
@@ -106,10 +111,10 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                 ? 'bg-[#00A3E0] text-white shadow-xs'
                 : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
-            title="Ver perspectiva en Dólares (USD)"
+            title={l('Ver perspectiva en Dólares (USD)', 'View overview in US Dollars (USD)')}
           >
             <Wallet className="w-3.5 h-3.5" />
-            <span>Ver en USD</span>
+            <span>{l('Ver en USD', 'View in USD')}</span>
           </button>
         </div>
       </div>
@@ -126,13 +131,15 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                 </div>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                    Ingresos Brutos
+                    {l('Ingresos Brutos', 'Gross Revenue')}
                   </h3>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Total cobrado al cliente + Muellaje</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {l('Total cobrado al cliente + Muellaje', 'Total collected from client + Dockage')}
+                  </p>
                 </div>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
-                100% Flujo
+                100% {l('Flujo', 'Flow')}
               </span>
             </div>
 
@@ -144,26 +151,26 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                     {formatCurrencyMXN(metrics.totalIngresosBrutosMXN)}
                   </div>
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                    Consolidado en Pesos (USD × TC de tabla)
+                    {l('Consolidado en Pesos (USD × TC de tabla)', 'Consolidated in Pesos (USD × Sheet Exchange Rate)')}
                   </span>
                 </div>
               )}
               {currencyMode === 'split' && (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">En Dólares:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{l('En Dólares:', 'In US Dollars:')}</span>
                     <span className="text-base font-bold text-sky-600 dark:text-sky-400">
                       {formatCurrencyUSD(metrics.usdTotalVentas + metrics.usdTotalMuelle)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">En Pesos:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{l('En Pesos:', 'In Mexican Pesos:')}</span>
                     <span className="text-base font-bold text-slate-900 dark:text-white">
                       {formatCurrencyMXN(metrics.mxnTotalVentas + metrics.mxnTotalMuelle)}
                     </span>
                   </div>
                   <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-700/60">
-                    Total equivalente: {formatCurrencyMXN(metrics.totalIngresosBrutosMXN)}
+                    {l('Total equivalente:', 'Equivalent total:')} {formatCurrencyMXN(metrics.totalIngresosBrutosMXN)}
                   </div>
                 </div>
               )}
@@ -177,7 +184,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                     )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    Equivalente global en USD al TC prom. (${metrics.promedioTipoCambio.toFixed(2)})
+                    {l(`Equivalente global en USD al TC prom. ($${metrics.promedioTipoCambio.toFixed(2)})`, `Global USD equivalent at avg FX ($${metrics.promedioTipoCambio.toFixed(2)})`)}
                   </span>
                 </div>
               )}
@@ -188,7 +195,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
                 <span className="flex items-center gap-1.5">
                   <Receipt className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Ventas de Actividades:</span>
+                  <span>{l('Ventas de Actividades:', 'Activity Sales:')}</span>
                 </span>
                 <span className="font-bold text-slate-900 dark:text-slate-100">
                   {formatCurrencyMXN(metrics.totalVentasMXN)}
@@ -198,7 +205,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
                 <span className="flex items-center gap-1.5">
                   <Anchor className="w-3.5 h-3.5 text-[#00A3E0]" />
-                  <span>Derecho de Muelle (PAX):</span>
+                  <span>{l('Derecho de Muelle (PAX):', 'Dockage Fee (PAX):')}</span>
                 </span>
                 <span className="font-bold text-emerald-600 dark:text-emerald-400">
                   +{formatCurrencyMXN(metrics.totalMuelleMXN)}
@@ -216,13 +223,15 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                 </div>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                    Egresos Operativos
+                    {l('Egresos Operativos', 'Operating Outflows')}
                   </h3>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Costos a proveedores + Comisiones</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {l('Costos a proveedores + Comisiones', 'Vendor costs + Promoter commissions')}
+                  </p>
                 </div>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300">
-                {(pctCostos + pctComisiones).toFixed(1)}% del total
+                {(pctCostos + pctComisiones).toFixed(1)}% {l('del total', 'of total')}
               </span>
             </div>
 
@@ -234,26 +243,26 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                     {formatCurrencyMXN(metrics.totalEgresosMXN)}
                   </div>
                   <span className="text-[10px] text-rose-500 dark:text-rose-400/80 font-medium">
-                    Total egresos directos en Pesos
+                    {l('Total egresos directos en Pesos', 'Total direct outflows in Pesos')}
                   </span>
                 </div>
               )}
               {currencyMode === 'split' && (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">En Dólares:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{l('En Dólares:', 'In US Dollars:')}</span>
                     <span className="text-base font-bold text-rose-500">
                       {formatCurrencyUSD(metrics.usdTotalCostos + metrics.usdTotalComisiones)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 dark:text-slate-400">En Pesos:</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{l('En Pesos:', 'In Mexican Pesos:')}</span>
                     <span className="text-base font-bold text-rose-600 dark:text-rose-400">
                       {formatCurrencyMXN(metrics.mxnTotalCostos + metrics.mxnTotalComisiones)}
                     </span>
                   </div>
                   <div className="text-[10px] text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-700/60">
-                    Total consolidado: {formatCurrencyMXN(metrics.totalEgresosMXN)}
+                    {l('Total consolidado:', 'Consolidated total:')} {formatCurrencyMXN(metrics.totalEgresosMXN)}
                   </div>
                 </div>
               )}
@@ -267,7 +276,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                     )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    Total egresos directos expresados en USD
+                    {l('Total egresos directos expresados en USD', 'Total direct outflows in USD')}
                   </span>
                 </div>
               )}
@@ -276,14 +285,14 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
             {/* Expense Item Breakdown */}
             <div className="space-y-2 text-xs border-t border-slate-200 dark:border-[#1e3e68]/70 pt-3">
               <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                <span>Costo Proveedores (Embarcaciones/Tours):</span>
+                <span>{l('Costo Proveedores (Embarcaciones/Tours):', 'Vendor Costs (Boats / Tours):')}</span>
                 <span className="font-bold text-rose-600 dark:text-rose-400">
                   {formatCurrencyMXN(metrics.totalCostosDirectosMXN)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                <span>Comisiones Pagadas a Vendedores:</span>
+                <span>{l('Comisiones Pagadas a Vendedores:', 'Promoter Sales Commissions Paid:')}</span>
                 <span className="font-bold text-amber-600 dark:text-amber-400">
                   {formatCurrencyMXN(metrics.totalComisionesVendedoresMXN)}
                 </span>
@@ -300,15 +309,15 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                 </div>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-900 dark:text-emerald-200">
-                    Utilidad Neta Marina
+                    {l('Utilidad Neta Marina', 'Marina Net Profit')}
                   </h3>
                   <p className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
-                    Fórmula: Muelle + Over + Casa
+                    {l('Fórmula: Muelle + Over + Casa', 'Formula: Dockage + Over + House Share')}
                   </p>
                 </div>
               </div>
               <span className="text-[10px] font-black px-2 py-0.5 rounded bg-emerald-600 text-white">
-                {metrics.margenUtilidadNeta.toFixed(1)}% Margen
+                {metrics.margenUtilidadNeta.toFixed(1)}% {l('Margen', 'Margin')}
               </span>
             </div>
 
@@ -320,26 +329,26 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                     {formatCurrencyMXN(metrics.totalUtilidadNetaMXN)}
                   </div>
                   <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">
-                    Ganancia total neta para la Marina (en MXN)
+                    {l('Ganancia total neta para la Marina (en MXN)', 'Total net gain for the Marina (in MXN)')}
                   </span>
                 </div>
               )}
               {currencyMode === 'split' && (
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-600 dark:text-slate-300">En Dólares:</span>
+                    <span className="text-xs text-slate-600 dark:text-slate-300">{l('En Dólares:', 'In US Dollars:')}</span>
                     <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
                       {formatCurrencyUSD(metrics.usdTotalUtilidadNeta)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-600 dark:text-slate-300">En Pesos:</span>
+                    <span className="text-xs text-slate-600 dark:text-slate-300">{l('En Pesos:', 'In Mexican Pesos:')}</span>
                     <span className="text-base font-bold text-emerald-700 dark:text-emerald-300">
                       {formatCurrencyMXN(metrics.mxnTotalUtilidadNeta)}
                     </span>
                   </div>
                   <div className="text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-emerald-200 dark:border-emerald-900/60">
-                    Consolidado en MXN: {formatCurrencyMXN(metrics.totalUtilidadNetaMXN)}
+                    {l('Consolidado en MXN:', 'Consolidated in MXN:')} {formatCurrencyMXN(metrics.totalUtilidadNetaMXN)}
                   </div>
                 </div>
               )}
@@ -353,7 +362,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
                     )}
                   </div>
                   <span className="text-[10px] text-slate-400 font-medium">
-                    Ganancia neta total convertida a USD
+                    {l('Ganancia neta total convertida a USD', 'Total net profit converted to USD')}
                   </span>
                 </div>
               )}
@@ -362,19 +371,19 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
             {/* Formula breakdown */}
             <div className="space-y-1.5 text-[11px] border-t border-emerald-200 dark:border-emerald-900/60 pt-3">
               <div className="flex items-center justify-between text-slate-700 dark:text-slate-200">
-                <span>+ Muelle (Atraque PAX):</span>
+                <span>+ {l('Muelle (Atraque PAX):', 'Dockage (PAX):')}</span>
                 <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
                   {formatCurrencyMXN(metrics.totalMuelleMXN)}
                 </span>
               </div>
               <div className="flex items-center justify-between text-slate-700 dark:text-slate-200">
-                <span>+ Over (Margen retenido):</span>
+                <span>+ Over ({l('Margen retenido', 'Retained markup')}):</span>
                 <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
                   {formatCurrencyMXN(metrics.totalOverMXN)}
                 </span>
               </div>
               <div className="flex items-center justify-between text-slate-700 dark:text-slate-200">
-                <span>+ Casa (50% Comisión Neta):</span>
+                <span>+ {l('Casa (50% Comisión Neta):', 'House (50% Net Commission):')}</span>
                 <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
                   {formatCurrencyMXN(metrics.totalCasaMXN)}
                 </span>
@@ -387,10 +396,10 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
         <div className="p-4 bg-slate-50 dark:bg-[#0f233d]/50 rounded-xl border border-slate-200 dark:border-[#1e3e68] space-y-2.5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
             <span className="font-bold text-slate-800 dark:text-slate-200">
-              Distribución Proporcional de Cada Peso Ingresado (100%)
+              {l('Distribución Proporcional de Cada Peso Ingresado (100%)', 'Proportional Breakdown of Every Earned Peso (100%)')}
             </span>
             <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              Tipo de Cambio Promedio Aplicado: 1 USD = ${metrics.promedioTipoCambio.toFixed(2)} MXN
+              {l('Tipo de Cambio Promedio Aplicado:', 'Applied Average FX Rate:')} 1 USD = ${metrics.promedioTipoCambio.toFixed(2)} MXN
             </span>
           </div>
 
@@ -399,17 +408,17 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
             <div 
               style={{ width: `${pctCostos}%` }} 
               className="bg-rose-500 hover:bg-rose-600 transition-all duration-300"
-              title={`Costos Proveedor: ${pctCostos.toFixed(1)}%`}
+              title={`${l('Costos Proveedor', 'Vendor Costs')}: ${pctCostos.toFixed(1)}%`}
             />
             <div 
               style={{ width: `${pctComisiones}%` }} 
               className="bg-amber-500 hover:bg-amber-600 transition-all duration-300"
-              title={`Comisiones Vendedores: ${pctComisiones.toFixed(1)}%`}
+              title={`${l('Comisiones Vendedores', 'Promoter Commissions')}: ${pctComisiones.toFixed(1)}%`}
             />
             <div 
               style={{ width: `${pctUtilidad}%` }} 
               className="bg-emerald-500 hover:bg-emerald-600 transition-all duration-300"
-              title={`Utilidad Neta Marina: ${pctUtilidad.toFixed(1)}%`}
+              title={`${l('Utilidad Neta Marina', 'Marina Net Profit')}: ${pctUtilidad.toFixed(1)}%`}
             />
           </div>
 
@@ -418,21 +427,21 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-rose-500 shrink-0" />
               <span className="text-slate-600 dark:text-slate-300">
-                Costo Proveedores: <strong>{pctCostos.toFixed(1)}%</strong> ({formatCurrencyMXN(metrics.totalCostosDirectosMXN)})
+                {l('Costo Proveedores:', 'Vendor Costs:')} <strong>{pctCostos.toFixed(1)}%</strong> ({formatCurrencyMXN(metrics.totalCostosDirectosMXN)})
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-amber-500 shrink-0" />
               <span className="text-slate-600 dark:text-slate-300">
-                Comisión Vendedores: <strong>{pctComisiones.toFixed(1)}%</strong> ({formatCurrencyMXN(metrics.totalComisionesVendedoresMXN)})
+                {l('Comisión Vendedores:', 'Promoter Commissions:')} <strong>{pctComisiones.toFixed(1)}%</strong> ({formatCurrencyMXN(metrics.totalComisionesVendedoresMXN)})
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0" />
               <span className="text-slate-600 dark:text-slate-300">
-                Utilidad Marina (Muelle+Over+Casa): <strong>{pctUtilidad.toFixed(1)}%</strong> ({formatCurrencyMXN(metrics.totalUtilidadNetaMXN)})
+                {l('Utilidad Marina (Muelle+Over+Casa):', 'Marina Profit (Dock+Over+House):')} <strong>{pctUtilidad.toFixed(1)}%</strong> ({formatCurrencyMXN(metrics.totalUtilidadNetaMXN)})
               </span>
             </div>
           </div>
@@ -443,21 +452,21 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#002147] text-white">
-                <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[11px]">Concepto Financiero</th>
+                <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[11px]">{l('Concepto Financiero', 'Financial Concept')}</th>
                 <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[11px] text-right">
-                  En Dólares ({metrics.usdRecordsCount} ops)
+                  {l(`En Dólares (${metrics.usdRecordsCount} ops)`, `In US Dollars (${metrics.usdRecordsCount} ops)`)}
                 </th>
                 <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[11px] text-right">
-                  En Pesos ({metrics.mxnRecordsCount} ops)
+                  {l(`En Pesos (${metrics.mxnRecordsCount} ops)`, `In Mexican Pesos (${metrics.mxnRecordsCount} ops)`)}
                 </th>
                 <th className="py-2.5 px-3.5 font-bold uppercase tracking-wider text-[11px] text-right bg-[#001733] text-sky-200">
-                  Total Consolidado en Pesos (MXN)
+                  {l('Total Consolidado en Pesos (MXN)', 'Consolidated Total in Pesos (MXN)')}
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
               <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td className="py-2 px-3.5 font-medium">Venta Cobrada al Cliente</td>
+                <td className="py-2 px-3.5 font-medium">{l('Venta Cobrada al Cliente', 'Sale Collected from Client')}</td>
                 <td className="py-2 px-3.5 font-mono text-right text-sky-600 dark:text-sky-400">
                   {formatCurrencyUSD(metrics.usdTotalVentas)}
                 </td>
@@ -470,7 +479,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               </tr>
 
               <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td className="py-2 px-3.5 font-medium">Costo Reporte Neto a Proveedores</td>
+                <td className="py-2 px-3.5 font-medium">{l('Costo Reporte Neto a Proveedores', 'Net Reported Cost to Vendors')}</td>
                 <td className="py-2 px-3.5 font-mono text-right text-rose-600 dark:text-rose-400">
                   {formatCurrencyUSD(metrics.usdTotalCostos)}
                 </td>
@@ -483,7 +492,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               </tr>
 
               <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td className="py-2 px-3.5 font-medium">Total de Over (Margen retenido)</td>
+                <td className="py-2 px-3.5 font-medium">{l('Total de Over (Margen retenido)', 'Total Over (Retained Margin)')}</td>
                 <td className="py-2 px-3.5 font-mono text-right text-emerald-600 dark:text-emerald-400">
                   {formatCurrencyUSD(metrics.usdTotalOver)}
                 </td>
@@ -496,7 +505,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               </tr>
 
               <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td className="py-2 px-3.5 font-medium">Total de Casa (50% Comisión Neta)</td>
+                <td className="py-2 px-3.5 font-medium">{l('Total de Casa (50% Comisión Neta)', 'Total House Share (50% Net Commission)')}</td>
                 <td className="py-2 px-3.5 font-mono text-right text-emerald-600 dark:text-emerald-400">
                   {formatCurrencyUSD(metrics.usdTotalCasa)}
                 </td>
@@ -509,7 +518,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               </tr>
 
               <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td className="py-2 px-3.5 font-medium">Total de Comisiones de Vendedores</td>
+                <td className="py-2 px-3.5 font-medium">{l('Total de Comisiones de Vendedores', 'Total Promoter Commissions')}</td>
                 <td className="py-2 px-3.5 font-mono text-right text-amber-600 dark:text-amber-400">
                   {formatCurrencyUSD(metrics.usdTotalComisiones)}
                 </td>
@@ -522,7 +531,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               </tr>
 
               <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                <td className="py-2 px-3.5 font-medium">Total Muelle (Derecho de Atraque)</td>
+                <td className="py-2 px-3.5 font-medium">{l('Total Muelle (Derecho de Atraque)', 'Total Dockage Fee')}</td>
                 <td className="py-2 px-3.5 font-mono text-right text-[#00A3E0]">
                   {formatCurrencyUSD(metrics.usdTotalMuelle)}
                 </td>
@@ -537,7 +546,7 @@ export const IncomeExpenseDetailSection: React.FC<IncomeExpenseDetailSectionProp
               {/* Total Utilidad Row */}
               <tr className="bg-emerald-50 dark:bg-emerald-950/40 font-bold border-t-2 border-emerald-300 dark:border-emerald-700">
                 <td className="py-2.5 px-3.5 text-emerald-900 dark:text-emerald-200">
-                  Total de Utilidad Neta (Muelle + Over + Casa)
+                  {l('Total de Utilidad Neta (Muelle + Over + Casa)', 'Total Net Profit (Dock + Over + House Share)')}
                 </td>
                 <td className="py-2.5 px-3.5 font-mono text-right text-emerald-700 dark:text-emerald-300">
                   {formatCurrencyUSD(metrics.usdTotalUtilidadNeta)}

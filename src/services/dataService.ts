@@ -20,25 +20,28 @@ const LIVE_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRHr_YZ4y1
  * "$150" => 150
  * "($150)" => -150
  * "($75)" => -75
+ * "($20.000)" => -20000
  * "18,00" => 18
  * "15,7%" => 15.7
  * "-" or empty => 0
  */
 export function parseSpreadsheetNumber(val: string | undefined | null): number {
   if (!val) return 0;
-  const str = String(val).trim();
-  if (!str || str === '-' || str === 'N/A') return 0;
+  let str = String(val).trim();
+  if (!str || str === '-' || str === 'N/A' || str === 'NaN') return 0;
 
-  // Check negative formatted in parentheses: ($150), ($75)
+  // Check negative formatted in parentheses: ($150), ($75), ($20.000) or -$150 or -$20.000
   let isNeg = false;
-  let clean = str;
-  if (clean.startsWith('(') && clean.endsWith(')')) {
+  if (str.includes('(') && str.includes(')')) {
     isNeg = true;
-    clean = clean.slice(1, -1).trim();
+    str = str.replace(/[()]/g, '').trim();
+  } else if (str.startsWith('-') || str.includes(' -')) {
+    isNeg = true;
+    str = str.replace('-', '').trim();
   }
 
   // Remove currency symbol, spaces, and %
-  clean = clean.replace(/[$ %]/g, '').trim();
+  let clean = str.replace(/[$ %]/g, '').trim();
 
   let num = 0;
   // If format has comma as decimal: e.g. "18,00" -> 18, "24,6" -> 24.6
@@ -46,33 +49,32 @@ export function parseSpreadsheetNumber(val: string | undefined | null): number {
     clean = clean.replace(/\./g, '').replace(',', '.');
     num = parseFloat(clean) || 0;
   } else if (/^\d+(\.\d{3})+$/.test(clean) || /^\d+\.\d{3}$/.test(clean)) {
-    // Thousands dot separator e.g. 12.000, 1.500, 236.886
+    // Thousands dot separator e.g. 12.000, 1.500, 236.886, 20.000
     clean = clean.replace(/\./g, '');
     num = parseFloat(clean) || 0;
   } else {
     num = parseFloat(clean) || 0;
   }
 
-  return isNeg ? -num : num;
+  return isNeg ? -Math.abs(num) : Math.abs(num);
 }
 
 export function parseMarinaTSV(tsvString: string): OperationRecord[] {
-  const lines = tsvString.trim().split('\n');
+  const lines = tsvString.trim().split(/\r\n|\r|\n/);
   if (lines.length <= 1) return [];
 
   const headers = lines[0].split('\t').map(h => h.trim());
   const records: OperationRecord[] = [];
+  let currentSemana = '30';
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
     
     const cols = line.split('\t');
-    // Check if row has meaningful data
-    const actividad = (cols[0] || '').trim();
-    const servicio = (cols[1] || '').trim();
-    if (!actividad && !servicio) continue;
-
+    
+    let actividad = (cols[0] || '').trim();
+    let servicio = (cols[1] || '').trim();
     const paxRaw = (cols[2] || '').trim();
     const pax = parsePax(paxRaw);
 
@@ -80,64 +82,187 @@ export function parseMarinaTSV(tsvString: string): OperationRecord[] {
     const diaOperacion = (cols[4] || '').trim();
     const proveedor = (cols[5] || '').trim();
 
-    const costoReporteNeto = parseSpreadsheetNumber(cols[6]);
+    let costoReporteNeto = parseSpreadsheetNumber(cols[6]);
+    const cupon = (cols[18] || '').trim();
+    let promotor = (cols[20] || '').trim();
+
+    // Corrección confirmada de moneda: Los folios $587, $589 y $593 (tours vendidos por Luis en Semana 39)
+    // fueron capturados erróneamente con divisa USD en el Google Sheet, pero corresponden a Pesos Mexicanos (MXN).
+    // Con esta corrección, la comisión real oficial de Luis es exactamente de $32,429 MXN.
+    const isLuisMxnOverride = (cupon === '$587' || cupon === '587' || cupon === '$589' || cupon === '589' || cupon === '$593' || cupon === '593') && 
+      (promotor.toLowerCase().includes('luis') || actividad.toLowerCase().includes('capitan') || actividad.toLowerCase().includes('cancun'));
+
     const monedaRaw = (cols[7] || '').trim().toUpperCase();
-    const moneda: 'MXN' | 'USD' = monedaRaw === 'USD' ? 'USD' : 'MXN';
-    const tipoCambio = cols[8] && cols[8].trim() !== '-' ? parseSpreadsheetNumber(cols[8]) : null;
+    const moneda: 'MXN' | 'USD' = isLuisMxnOverride ? 'MXN' : (monedaRaw === 'USD' ? 'USD' : 'MXN');
+    const tipoCambio = isLuisMxnOverride ? null : (cols[8] && cols[8].trim() !== '-' ? parseSpreadsheetNumber(cols[8]) : null);
 
     const over = parseSpreadsheetNumber(cols[9]);
-    const subtotalConOver = parseSpreadsheetNumber(cols[10]);
+    let subtotalConOver = parseSpreadsheetNumber(cols[10]);
     const venta = parseSpreadsheetNumber(cols[11]);
     const comisionNeta = parseSpreadsheetNumber(cols[12]);
-    const comision = parseSpreadsheetNumber(cols[13]);
-    const casa = parseSpreadsheetNumber(cols[14]);
+    // Para la comisión de los promotores es la columna "comisión neta" dividida entre dos (50/50 con casa)
+    const comisionSheet = parseSpreadsheetNumber(cols[13]);
+    const comision = comisionNeta !== 0 ? (comisionNeta / 2) : comisionSheet;
+    const casa = comisionNeta !== 0 ? (comisionNeta / 2) : parseSpreadsheetNumber(cols[14]);
     const deposito = parseSpreadsheetNumber(cols[15]);
     const balance = parseSpreadsheetNumber(cols[16]);
     const total = parseSpreadsheetNumber(cols[17]);
-    const cupon = (cols[18] || '').trim();
     const locacion = (cols[19] || '').trim() || 'Lighthouse';
-    const promotor = (cols[20] || '').trim();
     const muelle = parseSpreadsheetNumber(cols[21]);
     const horas = parseSpreadsheetNumber(cols[22]);
     const notas = (cols[23] || '').trim();
 
-    // Computed MXN columns
-    const ventaMXN = cols[24] ? parseSpreadsheetNumber(cols[24]) : (moneda === 'USD' && tipoCambio ? venta * tipoCambio : venta);
-    const costoTotalMXN = cols[25] ? parseSpreadsheetNumber(cols[25]) : (moneda === 'USD' && tipoCambio ? subtotalConOver * tipoCambio : subtotalConOver);
-    const comisionMXN = cols[26] ? parseSpreadsheetNumber(cols[26]) : (moneda === 'USD' && tipoCambio ? comision * tipoCambio : comision);
-    const ingresoMuelleMXN = cols[27] ? parseSpreadsheetNumber(cols[27]) : muelle;
-    const ingresosTotalesMXN = cols[28] ? parseSpreadsheetNumber(cols[28]) : (ventaMXN + ingresoMuelleMXN);
-    const utilidadOperativaMXN = cols[29] ? parseSpreadsheetNumber(cols[29]) : (ingresosTotalesMXN - costoTotalMXN - comisionMXN);
-    const margenOperativo = cols[30] ? parseSpreadsheetNumber(cols[30]) : (ingresosTotalesMXN > 0 ? (utilidadOperativaMXN / ingresosTotalesMXN) * 100 : 0);
+    // Check if line has any actual data or if it's an empty template row
+    const hasMeaningfulData = Boolean(
+      actividad || servicio || diaOperacion || diaReserva || 
+      proveedor || venta !== 0 || muelle !== 0 || subtotalConOver !== 0 || 
+      comision !== 0 || deposito !== 0 || balance !== 0 || 
+      (notas && !notas.includes('0,0%') && !notas.includes('0.0%'))
+    );
+
+    // Skip empty template placeholder rows
+    if (!hasMeaningfulData) continue;
+
+    // Detect Pernota and Anticipo records
+    const isPernota = actividad.toLowerCase().includes('pernota') || 
+                      servicio.toLowerCase().includes('pernota') || 
+                      notas.toLowerCase().includes('pernota');
+    const isAnticipo = actividad.toLowerCase().includes('anticipo') || 
+                       servicio.toLowerCase().includes('anticipo') || 
+                       notas.toLowerCase().includes('anticipo');
+
+    // Detect Honorarios del personal de operación (Anticipo Gabriel y Anticipo Alexis)
+    const isHonorariosOperacion = (
+      actividad.toLowerCase().includes('anticipo gabriel') ||
+      actividad.toLowerCase().includes('anticipo alexis') ||
+      (isAnticipo && (actividad.toLowerCase().includes('gabriel') || actividad.toLowerCase().includes('alexis')))
+    );
+
+    let nombrePersonalOperacion: 'Gabriel' | 'Alexis' | undefined = undefined;
+    if (isHonorariosOperacion) {
+      if (actividad.toLowerCase().includes('gabriel')) nombrePersonalOperacion = 'Gabriel';
+      else if (actividad.toLowerCase().includes('alexis')) nombrePersonalOperacion = 'Alexis';
+    }
+
+    let montoHonorariosMXN = 0;
+    if (isHonorariosOperacion) {
+      montoHonorariosMXN = Math.abs(costoReporteNeto || parseSpreadsheetNumber(cols[6]));
+      costoReporteNeto = montoHonorariosMXN;
+      subtotalConOver = montoHonorariosMXN;
+      servicio = `Honorarios - Anticipo ${nombrePersonalOperacion || 'Operación'}`;
+      actividad = `Anticipo ${nombrePersonalOperacion || 'Personal'}`;
+      promotor = `Personal Operativo (${nombrePersonalOperacion || 'Operación'})`;
+    }
+
+    if (!actividad) {
+      if (isPernota) actividad = 'Pernota';
+      else if (isAnticipo) actividad = 'Anticipo';
+      else if (muelle !== 0) actividad = 'Muelle';
+      else actividad = 'Otros';
+    }
+
+    if (!servicio) {
+      if (isPernota) servicio = proveedor || promotor || 'Pernota Marina';
+      else if (isAnticipo) servicio = actividad;
+      else if (muelle !== 0) servicio = promotor ? `Muelle (${promotor})` : 'Muelle';
+      else servicio = actividad;
+    }
+
+    // Exchange rate handling
+    const isUSD = moneda === 'USD';
+    const tipoCambioAplicado: number = (tipoCambio && tipoCambio > 0) ? tipoCambio : 18.0;
+    const tipoCambioFuente: 'Fila' | 'Referencia' = (tipoCambio && tipoCambio > 0) ? 'Fila' : 'Referencia';
+
+    // Computed MXN columns with fallback calculation when formula columns are empty
+    const ventaMXN = isHonorariosOperacion ? 0 : (isLuisMxnOverride ? venta : (cols[24] && cols[24].trim() !== '' && cols[24].trim() !== '-' 
+      ? parseSpreadsheetNumber(cols[24]) 
+      : (isUSD ? venta * tipoCambioAplicado : venta)));
+
+    const costoTotalMXN = isHonorariosOperacion ? montoHonorariosMXN : (isLuisMxnOverride ? subtotalConOver : (cols[25] && cols[25].trim() !== '' && cols[25].trim() !== '-' 
+      ? parseSpreadsheetNumber(cols[25]) 
+      : (isUSD ? subtotalConOver * tipoCambioAplicado : subtotalConOver)));
+
+    const comisionMXN = isHonorariosOperacion ? 0 : (isLuisMxnOverride ? comision : (cols[26] && cols[26].trim() !== '' && cols[26].trim() !== '-' 
+      ? parseSpreadsheetNumber(cols[26]) 
+      : (isUSD ? comision * tipoCambioAplicado : comision)));
+
+    // Muelle column: includes regular dock fees and Pernota night fees
+    const ingresoMuelleMXN = isHonorariosOperacion ? 0 : (cols[27] && cols[27].trim() !== '' && cols[27].trim() !== '-' 
+      ? parseSpreadsheetNumber(cols[27]) 
+      : muelle);
+
+    // Ingresos Totales MXN = Venta + Muelle
+    const ingresosTotalesMXN = isHonorariosOperacion ? 0 : (cols[28] && cols[28].trim() !== '' && cols[28].trim() !== '-' 
+      ? parseSpreadsheetNumber(cols[28]) 
+      : (ventaMXN + ingresoMuelleMXN));
+
+    // Utilidad Operativa MXN = Ingresos Totales - Costo Total con Over - Comisión
+    // Para Honorarios del personal de operación: 0 - montoHonorariosMXN = -montoHonorariosMXN (descuenta de la utilidad)
+    const utilidadOperativaMXN = isHonorariosOperacion 
+      ? -montoHonorariosMXN 
+      : (cols[29] && cols[29].trim() !== '' && cols[29].trim() !== '-' 
+        ? parseSpreadsheetNumber(cols[29]) 
+        : (ingresosTotalesMXN - costoTotalMXN - comisionMXN));
+
+    const margenOperativo = cols[30] && cols[30].trim() !== '' && cols[30].trim() !== '-' 
+      ? parseSpreadsheetNumber(cols[30]) 
+      : (ingresosTotalesMXN !== 0 ? (utilidadOperativaMXN / Math.abs(ingresosTotalesMXN)) * 100 : 0);
 
     const estatusCobroRaw = (cols[31] || '').trim();
     let estatusCobro: 'Liquidado' | 'Pendiente' | 'Otro' = 'Liquidado';
     if (estatusCobroRaw.toLowerCase().includes('pendiente') || balance > 0) {
       estatusCobro = 'Pendiente';
-    } else if (estatusCobroRaw.toLowerCase().includes('liquidado')) {
+    } else if (estatusCobroRaw.toLowerCase().includes('cobrado') || estatusCobroRaw.toLowerCase().includes('liquidado')) {
       estatusCobro = 'Liquidado';
     }
 
-    const semana = (cols[32] || '').trim() || 'General';
+    // Week detection: maintain and inherit week context when col 32 is blank
+    let rawSemana = (cols[32] || '').trim();
+    if (rawSemana) {
+      currentSemana = rawSemana;
+    } else {
+      const fecha = (cols[4] || cols[3] || '').toLowerCase();
+      if (fecha.includes('sept') || fecha.includes('sep')) {
+        const dia = parseInt(fecha.replace(/\D/g, '').slice(0, 2), 10) || 1;
+        if (dia >= 1 && dia <= 6) currentSemana = '36';
+        else if (dia >= 7 && dia <= 13) currentSemana = '37';
+        else if (dia >= 14 && dia <= 20) currentSemana = '38';
+        else if (dia >= 21 && dia <= 27) currentSemana = '39';
+        else currentSemana = '38';
+      } else if (fecha.includes('ago')) {
+        const dia = parseInt(fecha.replace(/\D/g, '').slice(0, 2), 10) || 1;
+        if (dia >= 1 && dia <= 2) currentSemana = '31';
+        else if (dia >= 3 && dia <= 9) currentSemana = '32';
+        else if (dia >= 10 && dia <= 16) currentSemana = '33';
+        else if (dia >= 17 && dia <= 23) currentSemana = '34';
+        else if (dia >= 24 && dia <= 31) currentSemana = '35';
+        else currentSemana = '33';
+      } else if (fecha.includes('jul')) {
+        currentSemana = '30';
+      }
+      rawSemana = currentSemana;
+    }
+    const semana = rawSemana;
 
-    // Definición de Tipo de Cambio y Conversión
-    // Si la columna dice USD significa que la venta fue en dólares
-    // Si está en MXN significa que la venta fue en pesos mexicanos
+    // Currency fields & formula text
     const monedaOriginal: 'USD' | 'MXN' = moneda;
-    const tipoCambioAplicado: number = (tipoCambio && tipoCambio > 0) ? tipoCambio : 18.0;
-    const tipoCambioFuente: 'Fila' | 'Referencia' = (tipoCambio && tipoCambio > 0) ? 'Fila' : 'Referencia';
-
     let ventaUSD = 0;
     let costoUSD = 0;
     let comisionUSD = 0;
     let utilidadUSD = 0;
     let formulaConversion = '';
 
-    if (moneda === 'USD') {
+    if (isHonorariosOperacion) {
+      ventaUSD = 0;
+      costoUSD = tipoCambioAplicado > 0 ? costoTotalMXN / tipoCambioAplicado : 0;
+      comisionUSD = 0;
+      utilidadUSD = tipoCambioAplicado > 0 ? utilidadOperativaMXN / tipoCambioAplicado : 0;
+      formulaConversion = `Honorarios de Personal Operación (${nombrePersonalOperacion}): Descuenta -$${montoHonorariosMXN.toLocaleString('es-MX')} MXN`;
+    } else if (moneda === 'USD') {
       ventaUSD = venta;
       costoUSD = subtotalConOver;
       comisionUSD = comision;
-      utilidadUSD = casa;
+      utilidadUSD = tipoCambioAplicado > 0 ? utilidadOperativaMXN / tipoCambioAplicado : 0;
       formulaConversion = `$${venta.toLocaleString('en-US')} USD × ${tipoCambioAplicado.toFixed(2)} = $${ventaMXN.toLocaleString('es-MX')} MXN`;
     } else {
       ventaUSD = tipoCambioAplicado > 0 ? ventaMXN / tipoCambioAplicado : 0;
@@ -184,6 +309,11 @@ export function parseMarinaTSV(tsvString: string): OperationRecord[] {
       margenOperativo,
       estatusCobro,
       semana,
+      isPernota,
+      isAnticipo,
+      isHonorariosOperacion,
+      nombrePersonalOperacion,
+      montoHonorariosMXN,
       monedaOriginal,
       tipoCambioAplicado,
       tipoCambioFuente,
@@ -204,8 +334,35 @@ export async function fetchMarinaData(): Promise<{
   isLive: boolean;
   error?: string;
 }> {
+  // Strategy 1: Server proxy endpoint (bypasses CORS, guarantees full and uncached sheet fetch)
   try {
-    const res = await fetch(LIVE_TSV_URL, {
+    const proxyRes = await fetch('/api/marina-tsv', {
+      cache: 'no-store',
+      headers: {
+        'Accept': 'text/tab-separated-values, text/plain'
+      }
+    });
+    if (proxyRes.ok) {
+      const text = await proxyRes.text();
+      if (text && text.includes('Actividad')) {
+        const records = parseMarinaTSV(text);
+        if (records.length > 0) {
+          return {
+            records,
+            lastFetched: new Date(),
+            isLive: true
+          };
+        }
+      }
+    }
+  } catch (proxyErr) {
+    console.warn('Server proxy fetch failed, falling back to direct URL:', proxyErr);
+  }
+
+  // Strategy 2: Direct Google Sheets TSV fetch with timestamp cache-buster
+  try {
+    const directUrl = `${LIVE_TSV_URL}&_nocache=${Date.now()}`;
+    const res = await fetch(directUrl, {
       cache: 'no-store',
       headers: {
         'Accept': 'text/tab-separated-values, text/plain'
@@ -247,6 +404,13 @@ export function calculateExecutiveMetrics(records: OperationRecord[]): Executive
   let totalVentasDepositadasMXN = 0;
   let totalSaldoPendienteMXN = 0;
   let totalIngresoMuelleMXN = 0;
+  let totalPernotaMXN = 0;
+  let totalPernotaPositivaMXN = 0;
+  let totalPernotaNegativaMXN = 0;
+  let totalMuelleRegularMXN = 0;
+  let totalHonorariosOperacionMXN = 0;
+  let honorariosGabrielMXN = 0;
+  let honorariosAlexisMXN = 0;
   let totalPax = 0;
   let totalAdultos = 0;
   let totalNinos = 0;
@@ -263,6 +427,30 @@ export function calculateExecutiveMetrics(records: OperationRecord[]): Executive
     totalVentasDepositadasMXN += r.deposito;
     totalSaldoPendienteMXN += r.balance;
     totalIngresoMuelleMXN += r.ingresoMuelleMXN;
+
+    // Track Honorarios del personal de operación (Anticipo Gabriel y Anticipo Alexis)
+    if (r.isHonorariosOperacion) {
+      const monto = r.montoHonorariosMXN || Math.abs(r.costoTotalMXN);
+      totalHonorariosOperacionMXN += monto;
+      if (r.nombrePersonalOperacion === 'Gabriel') {
+        honorariosGabrielMXN += monto;
+      } else if (r.nombrePersonalOperacion === 'Alexis') {
+        honorariosAlexisMXN += monto;
+      }
+    }
+
+    // Track Pernota and regular Muelle (excluding Honorarios de personal de operación)
+    if (r.isPernota || (r.isAnticipo && !r.isHonorariosOperacion) || r.actividad === 'Pernota') {
+      totalPernotaMXN += r.ingresoMuelleMXN;
+      if (r.ingresoMuelleMXN < 0) {
+        // Negative amount (e.g. anticipos restados) subtracts from total
+        totalPernotaNegativaMXN += r.ingresoMuelleMXN;
+      } else {
+        totalPernotaPositivaMXN += r.ingresoMuelleMXN;
+      }
+    } else if (!r.isHonorariosOperacion) {
+      totalMuelleRegularMXN += r.ingresoMuelleMXN;
+    }
 
     totalPax += r.pax.total;
     totalAdultos += r.pax.adults;
@@ -293,6 +481,13 @@ export function calculateExecutiveMetrics(records: OperationRecord[]): Executive
     totalVentasDepositadasMXN,
     totalSaldoPendienteMXN,
     totalIngresoMuelleMXN,
+    totalPernotaMXN,
+    totalPernotaPositivaMXN,
+    totalPernotaNegativaMXN,
+    totalMuelleRegularMXN,
+    totalHonorariosOperacionMXN,
+    honorariosGabrielMXN,
+    honorariosAlexisMXN,
     totalOperaciones: records.length,
     totalPax,
     totalAdultos,
@@ -314,6 +509,8 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
   let usdTotalMuelle = 0;
 
   let usdTotalVentasConvertidasMXN = 0;
+  let usdTotalCostosConvertidosMXN = 0;
+  let usdTotalOverConvertidoMXN = 0;
   let usdTotalUtilidadConvertidaMXN = 0;
   let usdTotalComisionesConvertidasMXN = 0;
 
@@ -331,6 +528,13 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
   let totalCasaMXN = 0;
   let totalComisionesVendedoresMXN = 0;
   let totalMuelleMXN = 0;
+  let totalPernotaMXN = 0;
+  let totalPernotaPositivaMXN = 0;
+  let totalPernotaNegativaMXN = 0;
+  let totalMuelleRegularMXN = 0;
+  let totalHonorariosOperacionMXN = 0;
+  let honorariosGabrielMXN = 0;
+  let honorariosAlexisMXN = 0;
   let totalVentasMXN = 0;
   let totalCostosDirectosMXN = 0;
 
@@ -358,6 +562,31 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
     const isUSD = r.moneda === 'USD';
     const tc = r.tipoCambioAplicado;
 
+    // Track Honorarios del personal de operación (Anticipo Gabriel y Anticipo Alexis)
+    if (r.isHonorariosOperacion) {
+      const honorariosMonto = r.montoHonorariosMXN || Math.abs(r.costoTotalMXN);
+      totalHonorariosOperacionMXN += honorariosMonto;
+      if (r.nombrePersonalOperacion === 'Gabriel') {
+        honorariosGabrielMXN += honorariosMonto;
+      } else if (r.nombrePersonalOperacion === 'Alexis') {
+        honorariosAlexisMXN += honorariosMonto;
+      }
+      // Se descuentan directamente de la utilidad neta
+      totalUtilidadNetaMXN -= honorariosMonto;
+    }
+
+    // Track Pernota vs regular Muelle (excluding Honorarios de personal de operación)
+    if (r.isPernota || (r.isAnticipo && !r.isHonorariosOperacion) || r.actividad === 'Pernota') {
+      totalPernotaMXN += r.ingresoMuelleMXN;
+      if (r.ingresoMuelleMXN < 0) {
+        totalPernotaNegativaMXN += r.ingresoMuelleMXN; // Negative, subtracts
+      } else {
+        totalPernotaPositivaMXN += r.ingresoMuelleMXN;
+      }
+    } else if (!r.isHonorariosOperacion) {
+      totalMuelleRegularMXN += r.ingresoMuelleMXN;
+    }
+
     if (isUSD) {
       usdRecordsCount++;
       usdTotalVentas += r.venta;
@@ -365,7 +594,7 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
       usdTotalOver += r.over;
       usdTotalCasa += r.casa;
       usdTotalComisiones += r.comision;
-      usdTotalMuelle += (r.ingresoMuelleMXN || r.muelle);
+      usdTotalMuelle += r.ingresoMuelleMXN;
 
       usdTotalVentasConvertidasMXN += r.ventaMXN;
       usdTotalUtilidadConvertidaMXN += r.utilidadOperativaMXN;
@@ -378,9 +607,12 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
       const overMXN = r.over * tc;
       const casaMXN = r.casa * tc;
       const comisionMXN = r.comision * tc;
-      const muelleMXN = r.ingresoMuelleMXN || r.muelle;
+      const muelleMXN = r.ingresoMuelleMXN;
       const ventaMXN = r.ventaMXN;
       const costoMXN = r.costoTotalMXN;
+
+      usdTotalCostosConvertidosMXN += costoMXN;
+      usdTotalOverConvertidoMXN += overMXN;
 
       totalOverMXN += overMXN;
       totalCasaMXN += casaMXN;
@@ -388,7 +620,7 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
       totalMuelleMXN += muelleMXN;
       totalVentasMXN += ventaMXN;
       totalCostosDirectosMXN += costoMXN;
-      // Formula solicitada: Utilidad neta = muelle + over + casa
+      // Formula solicitada: Utilidad neta = muelle (incluyendo pernotas y deducciones) + over + casa
       totalUtilidadNetaMXN += (muelleMXN + overMXN + casaMXN);
     } else {
       mxnRecordsCount++;
@@ -397,18 +629,18 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
       mxnTotalOver += r.over;
       mxnTotalCasa += r.casa;
       mxnTotalComisiones += r.comision;
-      mxnTotalMuelle += (r.ingresoMuelleMXN || r.muelle);
+      mxnTotalMuelle += r.ingresoMuelleMXN;
 
       mxnTotalVentasEquivalenteUSD += r.ventaUSD;
 
       totalOverMXN += r.over;
       totalCasaMXN += r.casa;
       totalComisionesVendedoresMXN += r.comision;
-      totalMuelleMXN += (r.ingresoMuelleMXN || r.muelle);
+      totalMuelleMXN += r.ingresoMuelleMXN;
       totalVentasMXN += r.venta;
-      totalCostosDirectosMXN += r.costoReporteNeto;
-      // Formula solicitada: Utilidad neta = muelle + over + casa
-      totalUtilidadNetaMXN += ((r.ingresoMuelleMXN || r.muelle) + r.over + r.casa);
+      totalCostosDirectosMXN += r.costoTotalMXN;
+      // Formula solicitada: Utilidad neta = muelle (incluyendo pernotas y deducciones) + over + casa
+      totalUtilidadNetaMXN += (r.ingresoMuelleMXN + r.over + r.casa);
     }
 
     // Auditoría fila a fila de Tipo de Cambio
@@ -483,6 +715,13 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
     totalCasaMXN,
     totalComisionesVendedoresMXN,
     totalMuelleMXN,
+    totalPernotaMXN,
+    totalPernotaPositivaMXN,
+    totalPernotaNegativaMXN,
+    totalMuelleRegularMXN,
+    totalHonorariosOperacionMXN,
+    honorariosGabrielMXN,
+    honorariosAlexisMXN,
     totalVentasMXN,
     totalCostosDirectosMXN,
     totalEgresosMXN,
@@ -505,6 +744,8 @@ export function calculateDetailedFinancialMetrics(records: OperationRecord[]): D
     usdTotalMuelle,
     usdTotalUtilidadNeta,
     usdTotalVentasConvertidasMXN,
+    usdTotalCostosConvertidosMXN,
+    usdTotalOverConvertidoMXN,
     usdTotalUtilidadConvertidaMXN,
     usdTotalComisionesConvertidasMXN,
     mxnRecordsCount,

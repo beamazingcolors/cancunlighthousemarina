@@ -12,8 +12,11 @@ import {
 } from 'lucide-react';
 import { parsePax } from '../utils/paxUtils';
 import { formatCurrencyMXN, formatPercent } from '../utils/formatters';
+import { useLanguage } from '../context/LanguageContext';
 
 export const PaxMuelleCalculator: React.FC = () => {
+  const { language, l } = useLanguage();
+
   // Simulator inputs
   const [paxInput, setPaxInput] = useState<string>('2.2.1');
   const [adults, setAdults] = useState<number>(2);
@@ -72,10 +75,10 @@ export const PaxMuelleCalculator: React.FC = () => {
           </div>
           <div>
             <h2 className="text-lg font-bold text-[#002147] dark:text-[#66d2ff]">
-              Calculadora & Simulador: Notación PAX y Cobro de Muellaje
+              {l('Calculadora & Simulador: Notación PAX y Cobro de Muellaje', 'Calculator & Simulator: PAX Notation & Dock Fee Calculation')}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Herramienta oficial de cotización para staff y ejecutivos de Cancun Lighthouse Marina
+              {l('Herramienta oficial de cotización para staff y ejecutivos de Cancun Lighthouse Marina', 'Official quotation tool for Cancun Lighthouse Marina staff and executives')}
             </p>
           </div>
         </div>
@@ -85,24 +88,24 @@ export const PaxMuelleCalculator: React.FC = () => {
           <div className="space-y-1.5">
             <span className="font-bold text-[#002147] dark:text-sky-300 flex items-center gap-1.5">
               <Users className="w-4 h-4 text-[#002147] dark:text-sky-300" />
-              Regla de Notación PAX:
+              {l('Regla de Notación PAX:', 'PAX Notation Rule:')}
             </span>
             <ul className="list-disc list-inside text-slate-600 dark:text-slate-300 space-y-1 text-[11px]">
-              <li><strong className="text-slate-800 dark:text-white">1er número:</strong> Cantidad de Adultos (ej. 2)</li>
-              <li><strong className="text-slate-800 dark:text-white">1er punto (.):</strong> Cantidad de Menores / Niños (ej. 2.1)</li>
-              <li><strong className="text-slate-800 dark:text-white">2do punto (.):</strong> Cantidad de Infantes (ej. 2.2.1 = 5 PAX)</li>
+              <li><strong className="text-slate-800 dark:text-white">{l('1er número:', '1st number:')}</strong> {l('Cantidad de Adultos (ej. 2)', 'Adult count (e.g. 2)')}</li>
+              <li><strong className="text-slate-800 dark:text-white">{l('1er punto (.):', '1st dot (.):')}</strong> {l('Cantidad de Menores / Niños (ej. 2.1)', 'Child / Minor count (e.g. 2.1)')}</li>
+              <li><strong className="text-slate-800 dark:text-white">{l('2do punto (.):', '2nd dot (.):')}</strong> {l('Cantidad de Infantes (ej. 2.2.1 = 5 PAX)', 'Infant count (e.g. 2.2.1 = 5 PAX)')}</li>
             </ul>
           </div>
 
           <div className="space-y-1.5">
             <span className="font-bold text-[#002147] dark:text-sky-300 flex items-center gap-1.5">
               <Anchor className="w-4 h-4 text-[#00A3E0]" />
-              Regla de Cobro de Muellaje:
+              {l('Regla de Cobro de Muellaje:', 'Dockage Fee Rule:')}
             </span>
             <ul className="list-disc list-inside text-slate-600 dark:text-slate-300 space-y-1 text-[11px]">
-              <li><strong className="text-slate-800 dark:text-white">1 a 3 horas:</strong> $100 MXN por pasajero (PAX)</li>
-              <li><strong className="text-slate-800 dark:text-white">4 a 8 horas:</strong> $150 MXN por pasajero (PAX)</li>
-              <li>El muellaje se cobra por persona sobre el PAX total.</li>
+              <li><strong className="text-slate-800 dark:text-white">{l('1 a 3 horas:', '1 to 3 hours:')}</strong> {l('$100 MXN por pasajero (PAX)', '$100 MXN per passenger (PAX)')}</li>
+              <li><strong className="text-slate-800 dark:text-white">{l('4 a 8 horas:', '4 to 8 hours:')}</strong> {l('$150 MXN por pasajero (PAX)', '$150 MXN per passenger (PAX)')}</li>
+              <li>{l('El muellaje se cobra por persona sobre el PAX total.', 'Dock fee is charged per person on total PAX.')}</li>
             </ul>
           </div>
         </div>
@@ -113,29 +116,29 @@ export const PaxMuelleCalculator: React.FC = () => {
         {/* Left Column: Inputs Form */}
         <div className="lg:col-span-7 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
           <h3 className="text-sm font-bold text-[#002147] dark:text-white pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <span>Parámetros de la Cotización</span>
-            <span className="text-[11px] font-normal text-slate-400">Paso a paso</span>
+            <span>{l('Parámetros de la Cotización', 'Quotation Parameters')}</span>
+            <span className="text-[11px] font-normal text-slate-400">{l('Paso a paso', 'Step by step')}</span>
           </h3>
 
           {/* PAX String Input */}
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              Código PAX (Notación Rápida)
+              {l('Código PAX (Notación Rápida)', 'PAX Code (Quick Notation)')}
             </label>
             <div className="flex items-center space-x-2">
               <input
                 type="text"
                 value={paxInput}
                 onChange={(e) => handlePaxInputChange(e.target.value)}
-                placeholder="ej. 2.2.1 o 4.1 o 8"
+                placeholder={l('ej. 2.2.1 o 4.1 o 8', 'e.g. 2.2.1 or 4.1 or 8')}
                 className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg text-sm font-mono font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-[#00A3E0] focus:outline-none"
               />
               <span className="text-xs bg-sky-50 dark:bg-sky-950/60 text-[#002147] dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold px-3 py-2 rounded-lg font-mono whitespace-nowrap">
-                {totalPax} PAX Total
+                {totalPax} {l('PAX Total', 'Total PAX')}
               </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-1">
-              Escribe directamente el código (ej. "2" = 2 adultos | "2.1" = 2 ad, 1 niño | "2.2.1" = 2 ad, 2 niños, 1 infante)
+              {l('Escribe directamente el código (ej. "2" = 2 adultos | "2.1" = 2 ad, 1 niño | "2.2.1" = 2 ad, 2 niños, 1 infante)', 'Enter notation directly (e.g. "2" = 2 adults | "2.1" = 2 ad, 1 kid | "2.2.1" = 2 ad, 2 kids, 1 infant)')}
             </p>
           </div>
 
@@ -143,7 +146,7 @@ export const PaxMuelleCalculator: React.FC = () => {
           <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Adultos:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">{l('Adultos:', 'Adults:')}</span>
                 <span className="font-mono font-bold text-[#002147] dark:text-sky-300">{adults}</span>
               </div>
               <input
@@ -158,7 +161,7 @@ export const PaxMuelleCalculator: React.FC = () => {
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Niños / Menores:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">{l('Niños / Menores:', 'Children / Minors:')}</span>
                 <span className="font-mono font-bold text-[#00A3E0]">{children}</span>
               </div>
               <input
@@ -173,7 +176,7 @@ export const PaxMuelleCalculator: React.FC = () => {
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Infantes:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">{l('Infantes:', 'Infants:')}</span>
                 <span className="font-mono font-bold text-purple-700 dark:text-purple-400">{infants}</span>
               </div>
               <input
@@ -191,36 +194,36 @@ export const PaxMuelleCalculator: React.FC = () => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Horas de Renta (Yate / Lancha)
+                {l('Horas de Renta (Yate / Lancha)', 'Rental Hours (Yacht / Boat)')}
               </label>
               <select
                 value={horas}
                 onChange={(e) => setHoras(Number(e.target.value))}
                 className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-[#00A3E0]"
               >
-                <option value={1}>1 Hora ($100 MXN/pax)</option>
-                <option value={2}>2 Horas ($100 MXN/pax)</option>
-                <option value={3}>3 Horas ($100 MXN/pax)</option>
-                <option value={4}>4 Horas ($150 MXN/pax)</option>
-                <option value={5}>5 Horas ($150 MXN/pax)</option>
-                <option value={6}>6 Horas ($150 MXN/pax)</option>
-                <option value={8}>8 Horas ($150 MXN/pax)</option>
+                <option value={1}>{l('1 Hora ($100 MXN/pax)', '1 Hour ($100 MXN/pax)')}</option>
+                <option value={2}>{l('2 Horas ($100 MXN/pax)', '2 Hours ($100 MXN/pax)')}</option>
+                <option value={3}>{l('3 Horas ($100 MXN/pax)', '3 Hours ($100 MXN/pax)')}</option>
+                <option value={4}>{l('4 Horas ($150 MXN/pax)', '4 Hours ($150 MXN/pax)')}</option>
+                <option value={5}>{l('5 Horas ($150 MXN/pax)', '5 Hours ($150 MXN/pax)')}</option>
+                <option value={6}>{l('6 Horas ($150 MXN/pax)', '6 Hours ($150 MXN/pax)')}</option>
+                <option value={8}>{l('8 Horas ($150 MXN/pax)', '8 Hours ($150 MXN/pax)')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                Tipo de Actividad
+                {l('Tipo de Actividad', 'Activity Type')}
               </label>
               <select
                 value={actividad}
                 onChange={(e) => setActividad(e.target.value)}
                 className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-[#00A3E0]"
               >
-                <option value="Yate">Yate</option>
-                <option value="Tour">Tour</option>
-                <option value="Marina">Marina</option>
-                <option value="Pernota">Pernota</option>
+                <option value="Yate">{l('Yate', 'Yacht')}</option>
+                <option value="Tour">{l('Tour', 'Tour')}</option>
+                <option value="Marina">{l('Marina', 'Marina')}</option>
+                <option value="Pernota">{l('Pernota', 'Overnight')}</option>
               </select>
             </div>
           </div>
@@ -229,7 +232,7 @@ export const PaxMuelleCalculator: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1">
-                Costo Proveedor
+                {l('Costo Proveedor', 'Vendor Cost')}
               </label>
               <input
                 type="number"
@@ -241,7 +244,7 @@ export const PaxMuelleCalculator: React.FC = () => {
 
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1">
-                Over Empresa
+                {l('Over Empresa', 'Company Over')}
               </label>
               <input
                 type="number"
@@ -253,7 +256,7 @@ export const PaxMuelleCalculator: React.FC = () => {
 
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1">
-                Precio Venta
+                {l('Precio Venta', 'Sale Price')}
               </label>
               <input
                 type="number"
@@ -265,7 +268,7 @@ export const PaxMuelleCalculator: React.FC = () => {
 
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400 mb-1">
-                Depósito
+                {l('Depósito', 'Deposit')}
               </label>
               <input
                 type="number"
@@ -282,10 +285,10 @@ export const PaxMuelleCalculator: React.FC = () => {
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <span className="text-xs font-bold uppercase tracking-wider text-cyan-300">
-                Resultado de Cotización
+                {l('Resultado de Cotización', 'Quotation Summary')}
               </span>
               <span className="text-[10px] bg-emerald-500 text-white font-bold px-2 py-0.5 rounded">
-                Oficial Marina
+                {l('Oficial Marina', 'Marina Official')}
               </span>
             </div>
 
@@ -294,46 +297,46 @@ export const PaxMuelleCalculator: React.FC = () => {
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-300 flex items-center gap-1.5">
                   <Anchor className="w-3.5 h-3.5 text-[#00A3E0]" />
-                  Muellaje ({totalPax} PAX × ${muelleFeePerPax}):
+                  {l(`Muellaje (${totalPax} PAX × $${muelleFeePerPax}):`, `Dockage (${totalPax} PAX × $${muelleFeePerPax}):`)}
                 </span>
                 <span className="text-base font-mono font-black text-emerald-400">
                   +{formatCurrencyMXN(totalMuelle)}
                 </span>
               </div>
               <p className="text-[11px] text-slate-300">
-                {horas} hrs de renta = ${muelleFeePerPax} MXN por cada pasajero
+                {l(`${horas} hrs de renta = $${muelleFeePerPax} MXN por cada pasajero`, `${horas} hrs rental = $${muelleFeePerPax} MXN per passenger`)}
               </p>
             </div>
 
             {/* Financial breakdown */}
             <div className="mt-4 space-y-2.5 text-xs">
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-300">Precio Venta Original:</span>
+                <span className="text-slate-300">{l('Precio Venta Original:', 'Original Sale Price:')}</span>
                 <span className="font-mono font-semibold">{formatCurrencyMXN(venta)}</span>
               </div>
 
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-300">Ingresos Totales (Venta + Muelle):</span>
+                <span className="text-slate-300">{l('Ingresos Totales (Venta + Muelle):', 'Total Revenue (Sale + Dockage):')}</span>
                 <span className="font-mono font-bold text-cyan-300">{formatCurrencyMXN(ingresosTotales)}</span>
               </div>
 
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-300">Subtotal con Over:</span>
+                <span className="text-slate-300">{l('Subtotal con Over:', 'Subtotal with Over:')}</span>
                 <span className="font-mono text-rose-300">{formatCurrencyMXN(subtotalConOver)}</span>
               </div>
 
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-300">Comisión Vendedor (50% margen):</span>
+                <span className="text-slate-300">{l('Comisión Vendedor (50% margen):', 'Promoter Commission (50% net):')}</span>
                 <span className="font-mono text-amber-300">{formatCurrencyMXN(comisionVendedor)}</span>
               </div>
 
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-300">Utilidad Casa (50% margen):</span>
+                <span className="text-slate-300">{l('Utilidad Casa (50% margen):', 'House Profit (50% net):')}</span>
                 <span className="font-mono text-sky-300 font-bold">{formatCurrencyMXN(utilidadCasa)}</span>
               </div>
 
               <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-slate-300">Saldo Pendiente de Cobro:</span>
+                <span className="text-slate-300">{l('Saldo Pendiente de Cobro:', 'Pending Balance to Collect:')}</span>
                 <span className="font-mono text-amber-400 font-bold">{formatCurrencyMXN(saldoPendiente)}</span>
               </div>
             </div>
@@ -343,13 +346,13 @@ export const PaxMuelleCalculator: React.FC = () => {
           <div className="pt-4 border-t border-white/10 bg-black/20 p-4 rounded-xl">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-300 block">Utilidad Operativa Total</span>
+                <span className="text-[10px] uppercase font-bold text-slate-300 block">{l('Utilidad Operativa Total', 'Total Operating Profit')}</span>
                 <span className="text-2xl font-mono font-black text-emerald-400">
                   {formatCurrencyMXN(utilidadOperativa)}
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] uppercase font-bold text-slate-300 block">Margen Rentable</span>
+                <span className="text-[10px] uppercase font-bold text-slate-300 block">{l('Margen Rentable', 'Profit Margin')}</span>
                 <span className="text-xl font-mono font-bold text-cyan-300">
                   {formatPercent(margenOperativo)}
                 </span>

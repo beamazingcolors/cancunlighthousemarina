@@ -34,6 +34,14 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public override render() {
     if (this.state.hasError) {
+      let isEn = false;
+      try {
+        const saved = localStorage.getItem('clm_marina_language_v1');
+        isEn = saved === 'en' || document.documentElement.lang === 'en';
+      } catch {
+        // ignore
+      }
+
       return (
         <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-6 text-center">
           <div className="max-w-md w-full bg-[#002147] border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-4">
@@ -42,16 +50,18 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <h2 className="text-xl font-bold text-white">
-              Ocurrió un error inesperado
+              {isEn ? 'An unexpected error occurred' : 'Ocurrió un error inesperado'}
             </h2>
 
             <p className="text-xs text-slate-300 leading-relaxed">
-              El sistema de control de Cancun Lighthouse Marina protegió la integridad de tu sesión. Puedes reiniciar la interfaz de manera segura.
+              {isEn
+                ? 'The Cancun Lighthouse Marina control system protected the integrity of your session. You can safely reload the interface.'
+                : 'El sistema de control de Cancun Lighthouse Marina protegió la integridad de tu sesión. Puedes reiniciar la interfaz de manera segura.'}
             </p>
 
             {this.state.error && (
               <div className="p-3 bg-black/40 rounded-xl text-[11px] font-mono text-rose-300 text-left overflow-x-auto max-h-28 border border-white/5">
-                {this.state.error.message || 'Error desconocido de renderizado'}
+                {this.state.error.message || (isEn ? 'Unknown rendering error' : 'Error desconocido de renderizado')}
               </div>
             )}
 
@@ -61,7 +71,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 className="flex-1 py-2.5 px-4 bg-[#00A3E0] hover:bg-[#008ec4] text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#00A3E0]/25"
               >
                 <RefreshCw className="w-4 h-4" />
-                <span>Recargar Sistema</span>
+                <span>{isEn ? 'Reload System' : 'Recargar Sistema'}</span>
               </button>
             </div>
           </div>
@@ -72,3 +82,4 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+

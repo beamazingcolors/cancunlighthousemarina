@@ -3,15 +3,15 @@ import {
   Sparkles, 
   Layers, 
   Calendar, 
-  Calculator, 
-  Menu,
-  Coins
+  Ship, 
+  Menu 
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface MobileNavProps {
-  activeTab: 'dashboard' | 'operations' | 'executive' | 'calculator' | 'exchange';
-  onTabChange: (tab: 'dashboard' | 'operations' | 'executive' | 'calculator' | 'exchange') => void;
+  activeTab: 'dashboard' | 'operations' | 'executive' | 'calendar';
+  onTabChange: (tab: 'dashboard' | 'operations' | 'executive' | 'calendar') => void;
   onOpenDrawer: () => void;
 }
 
@@ -20,12 +20,13 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   onTabChange,
   onOpenDrawer
 }) => {
+  const { l } = useLanguage();
+
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Sparkles },
-    { id: 'operations', label: 'Operaciones', icon: Layers },
-    { id: 'exchange', label: 'T. Cambio', icon: Coins },
-    { id: 'executive', label: 'Reporte', icon: Calendar },
-    { id: 'calculator', label: 'Calculadora', icon: Calculator },
+    { id: 'operations', label: l('Operaciones', 'Operations'), icon: Layers },
+    { id: 'calendar', label: l('Calendario', 'Calendar'), icon: Calendar },
+    { id: 'executive', label: l('Reporte', 'Report'), icon: Ship },
   ] as const;
 
   return (
@@ -63,10 +64,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         <button
           onClick={onOpenDrawer}
           className="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl text-slate-400 hover:text-slate-200 transition-all cursor-pointer"
-          title="Menú y Ajustes"
+          title={l('Menú y Ajustes', 'Menu & Settings')}
         >
           <Menu className="w-5 h-5" />
-          <span className="text-[10px] mt-1 tracking-tight">Menú</span>
+          <span className="text-[10px] mt-1 tracking-tight">{l('Menú', 'Menu')}</span>
         </button>
       </nav>
     </div>

@@ -16,9 +16,8 @@ import { IncomeExpenseDetailSection } from './components/IncomeExpenseDetailSect
 import { AnalyticsCharts } from './components/AnalyticsCharts';
 import { OperationsTable } from './components/OperationsTable';
 import { OperationDetailModal } from './components/OperationDetailModal';
-import { PaxMuelleCalculator } from './components/PaxMuelleCalculator';
 import { ExecutiveSummaryView } from './components/ExecutiveSummaryView';
-import { CurrencyExchangeComparison } from './components/CurrencyExchangeComparison';
+import { SalesCalendarView } from './components/SalesCalendarView';
 import { BusinessGuideModal } from './components/BusinessGuideModal';
 import { SecurityCertificatesModal } from './components/SecurityCertificatesModal';
 import { SheetReconciliationModal } from './components/SheetReconciliationModal';
@@ -28,9 +27,26 @@ import { BackToTopButton } from './components/BackToTopButton';
 import { NetworkStatusBanner } from './components/NetworkStatusBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ThemeProvider } from './context/ThemeContext';
-import { checkFetchRateLimit } from './utils/security';
+import { LanguageProvider } from './context/LanguageContext';
+import { LoginScreen } from './components/LoginScreen';
+import { ExitConfirmModal } from './components/ExitConfirmModal';
+import { 
+  checkFetchRateLimit, 
+  getActiveSession, 
+  destroySession, 
+  UserAccount 
+} from './utils/security';
 
-function MarinaDashboardApp() {
+interface AuthenticatedDashboardProps {
+  currentUser: UserAccount;
+  onLogout: () => void;
+}
+
+function AuthenticatedDashboard({
+  currentUser,
+  onLogout
+}: AuthenticatedDashboardProps) {
+  const [isExitModalOpen, setIsExitModalOpen] = useState<boolean>(false);
   const [records, setRecords] = useState<OperationRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLive, setIsLive] = useState<boolean>(false);
@@ -39,8 +55,10 @@ function MarinaDashboardApp() {
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
   const [isCertificatesOpen, setIsCertificatesOpen] = useState<boolean>(false);
   const [isReconciliationOpen, setIsReconciliationOpen] = useState<boolean>(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState<boolean>(false);
+  const [calendarInitialMode, setCalendarInitialMode] = useState<'days' | 'weeks'>('days');
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'operations' | 'executive' | 'calculator' | 'exchange'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'operations' | 'executive' | 'calendar'>('dashboard');
   const [rateLimitNotice, setRateLimitNotice] = useState<string | null>(null);
   const [currencyMode, setCurrencyMode] = useState<CurrencyDisplayMode>('all_mxn');
 
@@ -282,6 +300,12 @@ function MarinaDashboardApp() {
         onExportCSV={handleExportCSV}
         onOpenMobileDrawer={() => setIsMobileDrawerOpen(true)}
         onOpenReconciliation={() => setIsReconciliationOpen(true)}
+        currentUser={currentUser}
+        onLogoutClick={() => setIsExitModalOpen(true)}
+        onOpenCalendarModal={(mode?: 'days' | 'weeks') => {
+          setCalendarInitialMode(mode || 'days');
+          setIsCalendarModalOpen(true);
+        }}
       />
 
       {/* Main App Canvas */}
@@ -404,30 +428,32 @@ function MarinaDashboardApp() {
             <ExecutiveSummaryView
               metrics={metrics}
               detailedMetrics={detailedMetrics}
-              records={records}
+              records={filteredRecords}
               activitiesSummary={activitiesSummary}
               locationsSummary={locationsSummary}
               selectedWeek={filters.semana}
+              filters={filters}
+              weeklyTrends={weeklyTrends}
               onOpenReconciliation={() => setIsReconciliationOpen(true)}
             />
           </div>
         )}
 
-        {/* Active View: Currency & Exchange Rate Row-by-Column Comparison */}
-        {activeTab === 'exchange' && (
+        {/* Active View: Interactive Sales Calendar & Commercial Advice */}
+        {activeTab === 'calendar' && (
           <div className="animate-in fade-in duration-200 min-w-0">
-            <CurrencyExchangeComparison
+            <SalesCalendarView
               records={records}
-              detailedMetrics={detailedMetrics}
-              onOpenAuditModal={() => setIsReconciliationOpen(true)}
+              initialMode={calendarInitialMode}
+              onSelectDay={(dateKey) => {
+                handleFilterChange('searchQuery', dateKey);
+                setActiveTab('operations');
+              }}
+              onSelectWeek={(week) => {
+                handleFilterChange('semana', week);
+                setActiveTab('operations');
+              }}
             />
-          </div>
-        )}
-
-        {/* Active View: PAX & Muelle Calculator */}
-        {activeTab === 'calculator' && (
-          <div className="animate-in fade-in duration-200 min-w-0">
-            <PaxMuelleCalculator />
           </div>
         )}
       </main>
@@ -442,11 +468,25 @@ function MarinaDashboardApp() {
             <span>Fuente: Google Sheets TSV</span>
             <span>•</span>
             <button 
-              onClick={() => setActiveTab('exchange')}
-              className="text-emerald-400 hover:underline cursor-pointer font-semibold flex items-center gap-1"
+              onClick={() => {
+                setCalendarInitialMode('days');
+                setIsCalendarModalOpen(true);
+              }}
+              className="text-[#00A3E0] hover:underline cursor-pointer font-semibold flex items-center gap-1"
             >
-              Tipo de Cambio (USD/MXN)
-              <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 rounded text-[9px]">Exacto</span>
+              Calendario de Ventas
+              <span className="px-1.5 py-0.2 bg-[#00A3E0]/20 text-[#00A3E0] rounded text-[9px]">Días & Semanas</span>
+            </button>
+            <span>•</span>
+            <button 
+              onClick={() => {
+                setCalendarInitialMode('weeks');
+                setIsCalendarModalOpen(true);
+              }}
+              className="text-indigo-400 hover:underline cursor-pointer font-semibold flex items-center gap-1"
+            >
+              Ventas por Semanas
+              <span className="px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded text-[9px]">Semanas</span>
             </button>
             <span>•</span>
             <button 
@@ -470,13 +510,6 @@ function MarinaDashboardApp() {
             >
               Certificados
             </button>
-            <span>•</span>
-            <button 
-              onClick={() => setActiveTab('calculator')}
-              className="text-cyan-400 hover:underline cursor-pointer"
-            >
-              Simulador PAX & Muelle
-            </button>
           </div>
         </div>
       </footer>
@@ -491,7 +524,7 @@ function MarinaDashboardApp() {
         onOpenDrawer={() => setIsMobileDrawerOpen(true)}
       />
 
-      {/* Mobile Slide-Over Drawer */}
+      {/* Mobile Slide-over Drawer */}
       <MobileDrawer
         isOpen={isMobileDrawerOpen}
         onClose={() => setIsMobileDrawerOpen(false)}
@@ -505,7 +538,43 @@ function MarinaDashboardApp() {
         onOpenCertificates={() => setIsCertificatesOpen(true)}
         isLive={isLive}
         lastFetched={lastFetched}
+        currentUser={currentUser}
+        onLogoutClick={() => setIsExitModalOpen(true)}
+        onOpenCalendar={(mode?: 'days' | 'weeks') => {
+          setCalendarInitialMode(mode || 'days');
+          setIsCalendarModalOpen(true);
+        }}
       />
+
+      {/* Interactive Sales Calendar Modal */}
+      {isCalendarModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 cursor-pointer"
+          onClick={() => setIsCalendarModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <SalesCalendarView
+              records={records}
+              isModal={true}
+              initialMode={calendarInitialMode}
+              onCloseModal={() => setIsCalendarModalOpen(false)}
+              onSelectDay={(dateKey) => {
+                handleFilterChange('searchQuery', dateKey);
+                setIsCalendarModalOpen(false);
+                setActiveTab('operations');
+              }}
+              onSelectWeek={(week) => {
+                handleFilterChange('semana', week);
+                setIsCalendarModalOpen(false);
+                setActiveTab('operations');
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Operation Detail Voucher Modal */}
       {selectedRecord && (
@@ -535,7 +604,48 @@ function MarinaDashboardApp() {
         metrics={metrics}
         detailedMetrics={detailedMetrics}
       />
+
+      {/* Exit / Logout Confirmation Modal */}
+      <ExitConfirmModal
+        isOpen={isExitModalOpen}
+        onClose={() => setIsExitModalOpen(false)}
+        onConfirmLogout={() => {
+          setIsExitModalOpen(false);
+          onLogout();
+        }}
+        userEmail={currentUser.email}
+      />
     </div>
+  );
+}
+
+function MarinaDashboardApp() {
+  // Authentication & Restricted User Session State
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
+    const session = getActiveSession();
+    return session.isValid ? session.user : null;
+  });
+
+  const handleLoginSuccess = (user: UserAccount) => {
+    setCurrentUser(user);
+  };
+
+  const handleConfirmLogout = () => {
+    destroySession();
+    setCurrentUser(null);
+  };
+
+  // RESTRICT ACCESS ENTIRELY: Show only the aesthetic login screen if unauthenticated
+  if (!currentUser) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Once authenticated, mount the full dashboard directly
+  return (
+    <AuthenticatedDashboard
+      currentUser={currentUser}
+      onLogout={handleConfirmLogout}
+    />
   );
 }
 
@@ -543,7 +653,9 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <MarinaDashboardApp />
+        <LanguageProvider>
+          <MarinaDashboardApp />
+        </LanguageProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

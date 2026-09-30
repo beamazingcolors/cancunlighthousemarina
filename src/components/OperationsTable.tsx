@@ -21,6 +21,7 @@ import { motion } from 'motion/react';
 import { OperationRecord, FilterState } from '../types/marina';
 import { formatCurrencyMXN, formatCurrencySimple, formatPercent } from '../utils/formatters';
 import { formatPaxDetail } from '../utils/paxUtils';
+import { useLanguage } from '../context/LanguageContext';
 
 interface OperationsTableProps {
   records: OperationRecord[];
@@ -75,6 +76,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
   availablePromoters,
   availableProviders
 }) => {
+  const { l, t } = useLanguage();
   const [sortField, setSortField] = useState<SortField>('diaOperacion');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -168,7 +170,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
             <input
               id="input-search-operations"
               type="text"
-              placeholder="Buscar cupón, servicio, promotor, proveedor..."
+              placeholder={l('Buscar cupón, servicio, promotor, proveedor...', 'Search voucher, service, promoter, vendor...')}
               value={filters.searchQuery}
               onChange={(e) => {
                 onFilterChange('searchQuery', e.target.value);
@@ -198,7 +200,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                Operativa
+                {l('Operativa', 'Operations')}
               </button>
               <button
                 id="btn-view-financial"
@@ -209,7 +211,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                Financiera
+                {l('Financiera', 'Financial')}
               </button>
               <button
                 id="btn-view-audit"
@@ -220,7 +222,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                Auditoría
+                {l('Auditoría', 'Audit')}
               </button>
               <button
                 id="btn-view-cards"
@@ -230,10 +232,10 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
                     ? 'bg-[#002147] dark:bg-[#00A3E0] text-white shadow-xs font-semibold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
-                title="Vista de Tarjetas Responsivas"
+                title={l('Vista de Tarjetas Responsivas', 'Responsive Cards View')}
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Tarjetas</span>
+                <span className="hidden sm:inline">{l('Tarjetas', 'Cards')}</span>
               </button>
             </div>
 
@@ -241,7 +243,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               id="btn-table-export-csv"
               onClick={onExportCSV}
               className="flex items-center space-x-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex-shrink-0"
-              title="Descargar datos en CSV"
+              title={l('Descargar datos en CSV', 'Download data in CSV')}
             >
               <Download className="w-3.5 h-3.5 text-emerald-600" />
               <span>CSV</span>
@@ -254,7 +256,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
           {/* Week Filter */}
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
-              Semana ({new Date().getFullYear()})
+              {t.week} ({new Date().getFullYear()})
             </label>
             <select
               id="select-filter-week"
@@ -265,16 +267,16 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               }}
               className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md py-1.5 px-2 text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-[#00A3E0] text-xs"
             >
-              <option value="ALL">Todas las semanas {new Date().getFullYear()}</option>
+              <option value="ALL">{l('Todas las semanas', 'All weeks')} {new Date().getFullYear()}</option>
               {availableWeeks.map(w => (
-                <option key={w} value={w}>Semana {w} ({new Date().getFullYear()})</option>
+                <option key={w} value={w}>{t.week} {w} ({new Date().getFullYear()})</option>
               ))}
             </select>
           </div>
 
           {/* Activity Filter */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Actividad</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{l('Actividad', 'Activity')}</label>
             <select
               id="select-filter-activity"
               value={filters.actividad}
@@ -284,7 +286,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               }}
               className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md py-1.5 px-2 text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-[#00A3E0] text-xs"
             >
-              <option value="ALL">Todas las actividades</option>
+              <option value="ALL">{l('Todas las actividades', 'All activities')}</option>
               {availableActivities.map(a => (
                 <option key={a} value={a}>{a}</option>
               ))}
@@ -293,7 +295,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
 
           {/* Location Filter */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Locación</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{l('Locación', 'Location')}</label>
             <select
               id="select-filter-location"
               value={filters.locacion}
@@ -303,7 +305,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               }}
               className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md py-1.5 px-2 text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-[#00A3E0] text-xs"
             >
-              <option value="ALL">Todas las locaciones</option>
+              <option value="ALL">{l('Todas las locaciones', 'All locations')}</option>
               {availableLocations.map(l => (
                 <option key={l} value={l}>{l}</option>
               ))}
@@ -312,7 +314,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
 
           {/* Promoter Filter */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Promotor</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{l('Promotor', 'Promoter')}</label>
             <select
               id="select-filter-promoter"
               value={filters.promotor}
@@ -322,7 +324,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               }}
               className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md py-1.5 px-2 text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-[#00A3E0] text-xs"
             >
-              <option value="ALL">Todos los promotores</option>
+              <option value="ALL">{l('Todos los promotores', 'All promoters')}</option>
               {availablePromoters.map(p => (
                 <option key={p} value={p}>{p}</option>
               ))}
@@ -331,7 +333,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
 
           {/* Provider Filter */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Proveedor</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{l('Proveedor', 'Vendor')}</label>
             <select
               id="select-filter-provider"
               value={filters.proveedor}
@@ -341,7 +343,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               }}
               className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md py-1.5 px-2 text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-[#00A3E0] text-xs"
             >
-              <option value="ALL">Todos los proveedores</option>
+              <option value="ALL">{l('Todos los proveedores', 'All vendors')}</option>
               {availableProviders.map(p => (
                 <option key={p} value={p}>{p}</option>
               ))}
@@ -350,7 +352,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
 
           {/* Estatus Cobro Filter */}
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Estatus</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">{l('Estatus', 'Status')}</label>
             <select
               id="select-filter-status"
               value={filters.estatusCobro}
@@ -360,9 +362,9 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               }}
               className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md py-1.5 px-2 text-slate-800 dark:text-slate-200 focus:ring-1 focus:ring-[#00A3E0] text-xs"
             >
-              <option value="ALL">Todos los estatus</option>
-              <option value="Liquidado">Liquidado</option>
-              <option value="Pendiente">Pendiente (Saldo &gt; 0)</option>
+              <option value="ALL">{l('Todos los estatus', 'All statuses')}</option>
+              <option value="Liquidado">{l('Liquidado', 'Settled / Paid')}</option>
+              <option value="Pendiente">{l('Pendiente (Saldo > 0)', 'Pending (Balance > 0)')}</option>
             </select>
           </div>
         </div>
@@ -373,7 +375,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#00A3E0]" />
               <span className="text-[#002147] dark:text-sky-200">
-                Filtro activo por Actividad: <strong className="text-[#00A3E0]">{filters.actividad}</strong> — La tabla y sus métricas muestran exclusivamente la ganancia y operaciones de <strong>{filters.actividad}</strong> ({filteredRecords.length} operaciones).
+                {l('Filtro activo por Actividad:', 'Active filter by Activity:')} <strong className="text-[#00A3E0]">{filters.actividad}</strong> — {l('La tabla y sus métricas muestran exclusivamente la ganancia y operaciones de', 'Table and metrics show exclusively profit and operations for')} <strong>{filters.actividad}</strong> ({filteredRecords.length} {l('operaciones', 'operations')}).
               </span>
             </div>
             <button
@@ -381,7 +383,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               onClick={() => onFilterChange('actividad', 'ALL')}
               className="px-2.5 py-1 bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-600 rounded-lg text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
             >
-              ✕ Mostrar todas las actividades
+              ✕ {l('Mostrar todas las actividades', 'Show all activities')}
             </button>
           </div>
         )}
@@ -463,37 +465,37 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
             <thead>
               <tr className="bg-[#002147] text-white select-none text-[11px] uppercase tracking-wider font-semibold">
                 <th onClick={() => handleSort('diaOperacion')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] whitespace-nowrap">
-                  Fecha Operación {renderSortIndicator('diaOperacion')}
+                  {l('Fecha Operación', 'Operation Date')} {renderSortIndicator('diaOperacion')}
                 </th>
                 <th onClick={() => handleSort('cupon')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] whitespace-nowrap">
-                  Folio / Cupón {renderSortIndicator('cupon')}
+                  {l('Folio / Cupón', 'Voucher / Folio')} {renderSortIndicator('cupon')}
                 </th>
                 <th onClick={() => handleSort('actividad')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] whitespace-nowrap">
-                  Actividad & Servicio {renderSortIndicator('actividad')}
+                  {l('Actividad & Servicio', 'Activity & Service')} {renderSortIndicator('actividad')}
                 </th>
                 <th onClick={() => handleSort('pax')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-center whitespace-nowrap">
                   PAX {renderSortIndicator('pax')}
                 </th>
                 <th onClick={() => handleSort('locacion')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] whitespace-nowrap">
-                  Locación {renderSortIndicator('locacion')}
+                  {l('Locación', 'Location')} {renderSortIndicator('locacion')}
                 </th>
                 <th onClick={() => handleSort('promotor')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] whitespace-nowrap">
-                  Promotor {renderSortIndicator('promotor')}
+                  {l('Promotor', 'Promoter')} {renderSortIndicator('promotor')}
                 </th>
 
                 {viewMode === 'standard' && (
                   <>
                     <th onClick={() => handleSort('venta')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Venta Original {renderSortIndicator('venta')}
+                      {l('Venta Original', 'Original Sale')} {renderSortIndicator('venta')}
                     </th>
                     <th onClick={() => handleSort('muelle')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Muelle {renderSortIndicator('muelle')}
+                      {l('Muelle', 'Dock Fee')} {renderSortIndicator('muelle')}
                     </th>
                     <th onClick={() => handleSort('ingresosTotalesMXN')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Ingresos Totales (MXN) {renderSortIndicator('ingresosTotalesMXN')}
+                      {l('Ingresos Totales (MXN)', 'Total Revenue (MXN)')} {renderSortIndicator('ingresosTotalesMXN')}
                     </th>
                     <th onClick={() => handleSort('utilidadOperativaMXN')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Utilidad (MXN) {renderSortIndicator('utilidadOperativaMXN')}
+                      {l('Utilidad (MXN)', 'Profit (MXN)')} {renderSortIndicator('utilidadOperativaMXN')}
                     </th>
                   </>
                 )}
@@ -501,19 +503,19 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
                 {viewMode === 'financial' && (
                   <>
                     <th onClick={() => handleSort('costoReporteNeto')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Costo Neto {renderSortIndicator('costoReporteNeto')}
+                      {l('Costo Neto', 'Net Cost')} {renderSortIndicator('costoReporteNeto')}
                     </th>
                     <th onClick={() => handleSort('over')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
                       Over {renderSortIndicator('over')}
                     </th>
                     <th onClick={() => handleSort('comision')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Comisión Vendedor {renderSortIndicator('comision')}
+                      {l('Comisión Vendedor', 'Promoter Comm.')} {renderSortIndicator('comision')}
                     </th>
                     <th onClick={() => handleSort('casa')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Utilidad Casa {renderSortIndicator('casa')}
+                      {l('Utilidad Casa', 'Marina Yield')} {renderSortIndicator('casa')}
                     </th>
                     <th onClick={() => handleSort('margenOperativo')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Margen % {renderSortIndicator('margenOperativo')}
+                      {l('Margen %', 'Margin %')} {renderSortIndicator('margenOperativo')}
                     </th>
                   </>
                 )}
@@ -521,25 +523,25 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
                 {viewMode === 'audit' && (
                   <>
                     <th onClick={() => handleSort('deposito')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Depósito {renderSortIndicator('deposito')}
+                      {l('Depósito', 'Deposit')} {renderSortIndicator('deposito')}
                     </th>
                     <th onClick={() => handleSort('balance')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Balance Pendiente {renderSortIndicator('balance')}
+                      {l('Balance Pendiente', 'Pending Balance')} {renderSortIndicator('balance')}
                     </th>
                     <th onClick={() => handleSort('total')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-right whitespace-nowrap">
-                      Total Cobrado {renderSortIndicator('total')}
+                      {l('Total Cobrado', 'Total Collected')} {renderSortIndicator('total')}
                     </th>
                     <th className="px-3 py-2.5 text-center whitespace-nowrap">
-                      Notas
+                      {l('Notas', 'Notes')}
                     </th>
                   </>
                 )}
 
                 <th onClick={() => handleSort('estatusCobro')} className="px-3 py-2.5 cursor-pointer hover:bg-[#002b5c] text-center whitespace-nowrap">
-                  Estatus {renderSortIndicator('estatusCobro')}
+                  {l('Estatus', 'Status')} {renderSortIndicator('estatusCobro')}
                 </th>
                 <th className="px-3 py-2.5 text-center whitespace-nowrap">
-                  Detalle
+                  {l('Detalle', 'Detail')}
                 </th>
               </tr>
             </thead>
@@ -547,7 +549,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
               {paginatedRecords.length === 0 ? (
                 <tr>
                   <td colSpan={14} className="px-4 py-12 text-center text-slate-400">
-                    No se encontraron operaciones registradas con los filtros aplicados.
+                    {l('No se encontraron operaciones registradas con los filtros aplicados.', 'No operations found matching the applied filters.')}
                   </td>
                 </tr>
               ) : (
@@ -705,7 +707,7 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
       {/* Pagination Footer */}
       <div className="p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400">
         <div className="flex items-center space-x-2">
-          <span>Mostrar:</span>
+          <span>{l('Mostrar:', 'Show:')}</span>
           <select
             value={pageSize}
             onChange={(e) => {
@@ -714,12 +716,12 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
             }}
             className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs text-slate-800 dark:text-slate-200"
           >
-            <option value={10}>10 filas</option>
-            <option value={20}>20 filas</option>
-            <option value={50}>50 filas</option>
-            <option value={100}>100 filas</option>
+            <option value={10}>10 {l('filas', 'rows')}</option>
+            <option value={20}>20 {l('filas', 'rows')}</option>
+            <option value={50}>50 {l('filas', 'rows')}</option>
+            <option value={100}>100 {l('filas', 'rows')}</option>
           </select>
-          <span>de {sortedRecords.length} operaciones</span>
+          <span>{l('de', 'of')} {sortedRecords.length} {l('operaciones', 'operations')}</span>
         </div>
 
         <div className="flex items-center space-x-1.5 self-center">
@@ -735,17 +737,17 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
             disabled={currentPage === 1}
             className="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 cursor-pointer"
           >
-            Anterior
+            {l('Anterior', 'Previous')}
           </button>
           <span className="px-3 py-1 font-semibold text-slate-800 dark:text-slate-200">
-            Página {currentPage} de {totalPages}
+            {l('Página', 'Page')} {currentPage} {l('de', 'of')} {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             className="px-2.5 py-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 cursor-pointer"
           >
-            Siguiente
+            {l('Siguiente', 'Next')}
           </button>
           <button
             onClick={() => setCurrentPage(totalPages)}

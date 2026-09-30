@@ -44,6 +44,12 @@ export interface OperationRecord {
   margenOperativo: number; // in percentage e.g. 20.3
   estatusCobro: 'Liquidado' | 'Pendiente' | 'Otro';
   semana: string; // '26', '30', '31', etc.
+  // Pernota & Anticipos categorization
+  isPernota: boolean;
+  isAnticipo: boolean;
+  isHonorariosOperacion: boolean;
+  nombrePersonalOperacion?: 'Gabriel' | 'Alexis' | string;
+  montoHonorariosMXN?: number;
   // Currency & Exchange Rate calculation audit fields:
   monedaOriginal: 'USD' | 'MXN';
   tipoCambioAplicado: number;
@@ -92,6 +98,14 @@ export interface DetailedFinancialMetrics {
   totalCasaMXN: number;
   totalComisionesVendedoresMXN: number; // comision
   totalMuelleMXN: number;
+  totalPernotaMXN: number; // Sum of all Pernota & Anticipo entries
+  totalPernotaPositivaMXN: number; // Positive pernotas (e.g. Mercedes, White Rum)
+  totalPernotaNegativaMXN: number; // Negative deductions / anticipos that subtract (e.g. -$30,000)
+  totalMuelleRegularMXN: number; // Regular passenger dock fees
+  // Honorarios de Personal Operativo (Anticipo Gabriel & Anticipo Alexis)
+  totalHonorariosOperacionMXN: number; // $30,000 MXN descontados
+  honorariosGabrielMXN: number; // $20,000 MXN descontados
+  honorariosAlexisMXN: number; // $10,000 MXN descontados
   totalVentasMXN: number;
   totalCostosDirectosMXN: number;
   totalEgresosMXN: number; // costos + comisiones
@@ -118,6 +132,8 @@ export interface DetailedFinancialMetrics {
   usdTotalMuelle: number;
   usdTotalUtilidadNeta: number; // usdMuelle + usdOver + usdCasa
   usdTotalVentasConvertidasMXN: number;
+  usdTotalCostosConvertidosMXN: number;
+  usdTotalOverConvertidoMXN: number;
   usdTotalUtilidadConvertidaMXN: number;
   usdTotalComisionesConvertidasMXN: number;
 
@@ -158,6 +174,14 @@ export interface ExecutiveMetrics {
   totalVentasDepositadasMXN: number;
   totalSaldoPendienteMXN: number;
   totalIngresoMuelleMXN: number;
+  totalPernotaMXN: number;
+  totalPernotaPositivaMXN: number;
+  totalPernotaNegativaMXN: number;
+  totalMuelleRegularMXN: number;
+  // Honorarios de Personal Operativo (Anticipo Gabriel & Anticipo Alexis)
+  totalHonorariosOperacionMXN: number;
+  honorariosGabrielMXN: number;
+  honorariosAlexisMXN: number;
   totalOperaciones: number;
   totalPax: number;
   totalAdultos: number;
@@ -216,3 +240,30 @@ export interface WeeklyTrend {
   pax: number;
   muelleMXN: number;
 }
+
+export interface WeeklyTrendForecast {
+  semanaProyectada: string;
+  ingresosEstimadosMXN: number;
+  utilidadEstimadaMXN: number;
+  margenEstimado: number;
+  paxEstimados: number;
+  operacionesEstimadas: number;
+  tendenciaEsperada: 'crecimiento' | 'estable' | 'precaucion';
+  justificacion: string;
+}
+
+export interface WeeklyTrendKeyInsight {
+  indicador: string;
+  comportamiento: string;
+  impacto: 'positivo' | 'neutral' | 'alerta';
+}
+
+export interface GeminiWeeklyAnalysisResponse {
+  resumenEjecutivo: string;
+  pronosticoSiguienteSemana: WeeklyTrendForecast;
+  tendenciasClave: WeeklyTrendKeyInsight[];
+  recomendacionesOperativas: string[];
+  alertasRiesgo: string[];
+  timestamp: string;
+}
+

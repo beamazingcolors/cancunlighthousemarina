@@ -24,7 +24,8 @@ import {
 } from '../types/marina';
 import { formatCurrencyMXN, formatPercent, formatNumber } from '../utils/formatters';
 import { useTheme } from '../context/ThemeContext';
-import { Ship, Filter, CheckCircle2, Sparkles, MapPin, X } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { Ship, Filter, CheckCircle2, Sparkles, MapPin, X, Users } from 'lucide-react';
 
 interface AnalyticsChartsProps {
   activitiesData: ActivitySummary[];
@@ -50,6 +51,8 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
   onSelectLocation
 }) => {
   const { theme } = useTheme();
+  const { language, l } = useLanguage();
+  const isEn = language === 'en';
   const isDark = theme === 'dark';
 
   const gridStroke = isDark ? '#1e293b' : '#f1f5f9';
@@ -62,9 +65,9 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
 
   // Data for PAX Pie Chart
   const paxPieData = [
-    { name: 'Adultos', value: metrics.totalAdultos, color: isDark ? '#38bdf8' : '#002147' },
-    { name: 'Niños (Menores)', value: metrics.totalNinos, color: '#00A3E0' },
-    { name: 'Infantes', value: metrics.totalInfantes, color: isDark ? '#a78bfa' : '#7c3aed' }
+    { name: l('Adultos', 'Adults'), value: metrics.totalAdultos, color: isDark ? '#38bdf8' : '#002147' },
+    { name: l('Niños (Menores)', 'Children (Minors)'), value: metrics.totalNinos, color: '#00A3E0' },
+    { name: l('Infantes', 'Infants'), value: metrics.totalInfantes, color: isDark ? '#a78bfa' : '#7c3aed' }
   ].filter(d => d.value > 0);
 
   // Distinct activity list for buttons
@@ -81,10 +84,10 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
               <div>
                 <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight flex items-center gap-1.5">
                   <Ship className="w-4 h-4 text-[#00A3E0]" />
-                  <span>Resultados por Tipo de Actividad</span>
+                  <span>{l('Resultados por Tipo de Actividad', 'Results by Activity Type')}</span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-sky-200/60">
-                  Haz clic en un botón (ej. Yate) para que la tabla y ganancias se filtren solo a esa actividad.
+                  {l('Haz clic en un botón (ej. Yate) para que la tabla y ganancias se filtren solo a esa actividad.', 'Click a button (e.g. Yacht) to filter the table and profits to that activity.')}
                 </p>
               </div>
 
@@ -99,7 +102,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
-                  Todos
+                  {l('Todos', 'All')}
                 </button>
                 <button
                   type="button"
@@ -110,7 +113,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
-                  Utilidad
+                  {l('Utilidad', 'Profit')}
                 </button>
                 <button
                   type="button"
@@ -121,7 +124,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                       : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                   }`}
                 >
-                  Ingresos
+                  {l('Ingresos', 'Revenue')}
                 </button>
               </div>
             </div>
@@ -130,7 +133,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
             <div className="flex items-center gap-1.5 flex-wrap pb-3">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 mr-1">
                 <Filter className="w-3 h-3 text-[#00A3E0]" />
-                Filtrar tabla:
+                {l('Filtrar tabla:', 'Filter table:')}
               </span>
 
               <button
@@ -142,7 +145,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
-                Todas ({activitiesData.length})
+                {l('Todas', 'All')} ({activitiesData.length})
               </button>
 
               {availableActivityNames.map(actName => {
@@ -163,7 +166,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                         ? 'bg-[#00A3E0] text-white shadow-xs scale-102 ring-2 ring-[#00A3E0]/40'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
-                    title={`Filtrar tabla para ver únicamente ganancias de ${actName}`}
+                    title={l(`Filtrar tabla para ver únicamente ganancias de ${actName}`, `Filter table to see profits only from ${actName}`)}
                   >
                     <span>{iconEmoji}</span>
                     <span>{actName}</span>
@@ -179,7 +182,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#00A3E0] animate-ping" />
                   <span className="text-[#002147] dark:text-sky-200">
-                    Mostrando únicamente ganancias y operaciones de: <strong>{selectedActivity}</strong>
+                    {l('Mostrando únicamente ganancias y operaciones de:', 'Displaying profits and operations solely for:')} <strong>{selectedActivity}</strong>
                   </span>
                 </div>
                 <button
@@ -188,7 +191,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                   className="text-[11px] font-bold text-sky-700 dark:text-sky-300 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <X className="w-3 h-3" />
-                  <span>Ver todas</span>
+                  <span>{l('Ver todas', 'View all')}</span>
                 </button>
               </div>
             )}
@@ -225,13 +228,13 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                   />
                   <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
                   {(metricFilter === 'all' || metricFilter === 'ingresos') && (
-                    <Bar dataKey="ingresosMXN" name="Ingresos Totales" fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} cursor="pointer" />
+                    <Bar dataKey="ingresosMXN" name={l('Ingresos Totales', 'Total Revenue')} fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} cursor="pointer" />
                   )}
                   {metricFilter === 'all' && (
-                    <Bar dataKey="costosMXN" name="Costos Directos" fill="#f43f5e" radius={[4, 4, 0, 0]} cursor="pointer" />
+                    <Bar dataKey="costosMXN" name={l('Costos Directos', 'Direct Costs')} fill="#f43f5e" radius={[4, 4, 0, 0]} cursor="pointer" />
                   )}
                   {(metricFilter === 'all' || metricFilter === 'utilidad') && (
-                    <Bar dataKey="utilidadMXN" name="Utilidad Operativa" fill="#10b981" radius={[4, 4, 0, 0]} cursor="pointer" />
+                    <Bar dataKey="utilidadMXN" name={l('Utilidad Operativa', 'Operating Profit')} fill="#10b981" radius={[4, 4, 0, 0]} cursor="pointer" />
                   )}
                 </BarChart>
               </ResponsiveContainer>
@@ -252,7 +255,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                       ? 'bg-[#00A3E0]/15 border-[#00A3E0] dark:bg-[#00A3E0]/20'
                       : 'bg-sky-50/50 dark:bg-[#071220] border-sky-100 dark:border-[#162a4a] hover:border-sky-300'
                   }`}
-                  title={`Clic para filtrar ganancias de ${act.actividad}`}
+                  title={l(`Clic para filtrar ganancias de ${act.actividad}`, `Click to filter profits from ${act.actividad}`)}
                 >
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-xs font-bold text-slate-800 dark:text-sky-100 truncate flex items-center gap-1">
@@ -266,7 +269,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                     {formatCurrencyMXN(act.ingresosMXN)}
                   </div>
                   <div className="text-[10px] text-slate-500 dark:text-sky-200/60 flex justify-between mt-0.5">
-                    <span>{act.operaciones} ops</span>
+                    <span>{act.operaciones} {l('ops', 'trips')}</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-medium">+{formatCurrencyMXN(act.utilidadMXN)}</span>
                   </div>
                 </button>
@@ -282,10 +285,10 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
               <div>
                 <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-[#00A3E0]" />
-                  <span>Rendimiento por Locación de Venta</span>
+                  <span>{l('Rendimiento por Locación de Venta', 'Performance by Sales Location')}</span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-sky-200/60">
-                  Distribución de volumen y márgenes entre puntos de venta
+                  {l('Distribución de volumen y márgenes entre puntos de venta', 'Volume and margin distribution across points of sale')}
                 </p>
               </div>
 
@@ -301,7 +304,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                         : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                   >
-                    Todas
+                    {l('Todas', 'All')}
                   </button>
                   {locationsData.map(loc => (
                     <button
@@ -340,8 +343,8 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                     contentStyle={{ backgroundColor: tooltipBg, borderRadius: '8px', border: `1px solid ${tooltipBorder}`, color: '#fff', fontSize: '12px' }}
                   />
                   <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                  <Bar dataKey="ingresosMXN" name="Ingresos MXN" fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="utilidadMXN" name="Utilidad Neta MXN" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="ingresosMXN" name={l('Ingresos MXN', 'Revenue MXN')} fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="utilidadMXN" name={l('Utilidad Neta MXN', 'Net Profit MXN')} fill="#10b981" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -358,14 +361,14 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                 <div className="flex items-center justify-between mb-1 gap-1">
                   <span className="text-xs font-bold text-slate-800 dark:text-sky-100 truncate">{loc.locacion}</span>
                   <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 flex-shrink-0">
-                    Margen: {formatPercent(loc.margen)}
+                    {l('Margen', 'Margin')}: {formatPercent(loc.margen)}
                   </span>
                 </div>
                 <div className="text-sm font-bold text-slate-900 dark:text-white font-mono truncate">
                   {formatCurrencyMXN(loc.ingresosMXN)}
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-sky-200/60 mt-1">
-                  <span>{loc.operaciones} Operaciones</span>
+                  <span>{loc.operaciones} {l('Operaciones', 'Operations')}</span>
                   <span>{loc.pax} PAX</span>
                 </div>
               </div>
@@ -379,14 +382,14 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
           <div>
             <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight">
-              Evolución Semanal de Operaciones & Utilidades
+              {l('Evolución Semanal de Operaciones & Utilidades', 'Weekly Evolution of Operations & Profits')}
             </h3>
             <p className="text-xs text-slate-500 dark:text-sky-200/60">
-              Tendencia de Ingresos Totales, Utilidad Operativa y Recaudación de Muellaje por Semana ({new Date().getFullYear()})
+              {l(`Tendencia de Ingresos Totales, Utilidad Operativa y Recaudación de Muellaje por Semana (${new Date().getFullYear()})`, `Trend of Total Revenue, Operating Profit, and Dock Fee Collection by Week (${new Date().getFullYear()})`)}
             </p>
           </div>
           <div className="flex items-center space-x-2 text-xs self-start sm:self-auto">
-            <span className="text-slate-500 dark:text-sky-200/70">Total Semanas:</span>
+            <span className="text-slate-500 dark:text-sky-200/70">{l('Total Semanas:', 'Total Weeks:')}</span>
             <span className="font-bold text-[#002147] dark:text-[#7cd1ff] bg-sky-50 dark:bg-[#0f233d] px-2 py-0.5 rounded border border-sky-200 dark:border-[#1e3e68]">{weeklyData.length}</span>
           </div>
         </div>
@@ -415,16 +418,16 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
               />
               <Tooltip 
                 formatter={(value: any, name: any) => [
-                  name === 'PAX Atendidos' ? `${value} personas` : formatCurrencyMXN(Number(value)),
+                  name === l('PAX Atendidos', 'PAX Served') ? `${value} ${l('personas', 'people')}` : formatCurrencyMXN(Number(value)),
                   name
                 ]}
                 contentStyle={{ backgroundColor: tooltipBg, borderRadius: '8px', border: `1px solid ${tooltipBorder}`, color: '#fff', fontSize: '12px' }}
               />
               <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-              <Bar yAxisId="left" dataKey="ingresosMXN" name="Ingresos Totales" fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} barSize={22} />
-              <Bar yAxisId="left" dataKey="utilidadMXN" name="Utilidad Operativa" fill="#10b981" radius={[4, 4, 0, 0]} barSize={22} />
-              <Line yAxisId="right" type="monotone" dataKey="pax" name="PAX Atendidos" stroke="#f59e0b" strokeWidth={3} dot={{ r: 3 }} />
-              <Line yAxisId="left" type="monotone" dataKey="muelleMXN" name="Ingreso Muellaje" stroke="#00A3E0" strokeWidth={2} strokeDasharray="4 4" />
+              <Bar yAxisId="left" dataKey="ingresosMXN" name={l('Ingresos Totales', 'Total Revenue')} fill={isDark ? '#38bdf8' : '#002147'} radius={[4, 4, 0, 0]} barSize={22} />
+              <Bar yAxisId="left" dataKey="utilidadMXN" name={l('Utilidad Operativa', 'Operating Profit')} fill="#10b981" radius={[4, 4, 0, 0]} barSize={22} />
+              <Line yAxisId="right" type="monotone" dataKey="pax" name={l('PAX Atendidos', 'PAX Served')} stroke="#f59e0b" strokeWidth={3} dot={{ r: 3 }} />
+              <Line yAxisId="left" type="monotone" dataKey="muelleMXN" name={l('Ingreso Muellaje', 'Dock Fee Revenue')} stroke="#00A3E0" strokeWidth={2} strokeDasharray="4 4" />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -437,14 +440,14 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
           <div className="flex items-center justify-between mb-1 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
             <div>
               <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight">
-                Composición de Pasajeros (PAX)
+                {l('Composición de Pasajeros (PAX)', 'Passenger (PAX) Demographics')}
               </h3>
               <p className="text-xs text-slate-500 dark:text-sky-200/60">
-                Segmentación por categoría para cálculo de aforo y muellaje
+                {l('Segmentación por categoría para cálculo de aforo y muellaje', 'Category breakdown for capacity and dock fee calculation')}
               </p>
             </div>
             <span className="text-xs font-bold text-[#002147] dark:text-[#7cd1ff] bg-sky-50 dark:bg-[#0f233d] px-2 py-0.5 rounded border border-sky-200 dark:border-[#1e3e68]">
-              {formatNumber(metrics.totalPax)} Total
+              {formatNumber(metrics.totalPax)} {l('Total', 'Total')}
             </span>
           </div>
 
@@ -467,7 +470,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: any) => [`${value} pasajeros`, 'Cantidad']}
+                  formatter={(value: any) => [`${value} ${l('pasajeros', 'passengers')}`, l('Cantidad', 'Quantity')]}
                   contentStyle={{ backgroundColor: tooltipBg, borderRadius: '8px', border: `1px solid ${tooltipBorder}`, color: '#fff', fontSize: '12px' }}
                 />
               </PieChart>
@@ -477,23 +480,24 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
 
         {/* Top Promoters Ranking */}
         <div className="bg-white dark:bg-[#0b1728] rounded-xl p-4 sm:p-5 border border-sky-100 dark:border-[#162a4a] shadow-xs min-w-0">
-          <div className="flex items-center justify-between mb-1 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2 pb-2 border-b border-sky-50 dark:border-[#162a4a]/80">
             <div>
               <h3 className="text-sm font-bold text-[#002147] dark:text-[#7cd1ff] tracking-tight">
-                Top Promotores & Generadores de Venta
+                {l('Top Promotores & Generadores de Venta', 'Top Sales Promoters & Earners')}
               </h3>
               <p className="text-xs text-slate-500 dark:text-sky-200/60">
-                Líderes en volumen colocado y comisiones generadas
+                {l('Listado completo de promotores — La comisión indicada es exclusivamente lo que reciben en la', 'Complete promoter list — The commission indicated is exclusively from the')}{' '}
+                <strong className="text-[#002147] dark:text-sky-300">{l('Columna Comisión', 'Commission Column')}</strong>
               </p>
             </div>
-            <span className="text-xs font-bold text-slate-500 dark:text-sky-200/60">
-              Ranking {promotersData.length}
+            <span className="text-xs font-bold text-slate-500 dark:text-sky-200/60 bg-sky-50 dark:bg-sky-950/40 px-2 py-0.5 rounded border border-sky-200/50 dark:border-sky-800/50 self-start sm:self-auto">
+              {l('Total Promotores:', 'Total Promoters:')} {promotersData.length}
             </span>
           </div>
 
-          <div className="divide-y divide-slate-100 dark:divide-slate-800/80 max-h-64 overflow-y-auto">
-            {promotersData.slice(0, 5).map((prom, index) => (
-              <div key={prom.promotor} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800/80 max-h-96 overflow-y-auto pr-1">
+            {promotersData.map((prom, index) => (
+              <div key={prom.promotor} className="py-2.5 flex items-center justify-between gap-3 text-xs hover:bg-slate-50/60 dark:hover:bg-slate-800/40 px-2 rounded-lg transition-colors">
                 <div className="flex items-center space-x-2.5 min-w-0">
                   <span className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${
                     index === 0 ? 'bg-amber-400 text-slate-900 shadow-xs' :
@@ -506,16 +510,17 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
                   <div className="min-w-0">
                     <p className="font-bold text-slate-900 dark:text-white truncate">{prom.promotor}</p>
                     <p className="text-[10px] text-slate-500 dark:text-sky-200/60">
-                      {prom.operaciones} Operaciones registradas
+                      {prom.operaciones} {prom.operaciones === 1 ? l('Operación', 'Operation') : l('Operaciones', 'Operations')} {l('registradas', 'recorded')}
                     </p>
                   </div>
                 </div>
 
                 <div className="text-right shrink-0">
                   <p className="font-bold text-slate-900 dark:text-sky-100 font-mono">{formatCurrencyMXN(prom.ventasMXN)}</p>
-                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                    Comisión: {formatCurrencyMXN(prom.comisionMXN)}
+                  <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 font-mono">
+                    {l('Comisión:', 'Commission:')} {formatCurrencyMXN(prom.comisionMXN)}
                   </p>
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 block">{l('Columna Comisión', 'Commission Column')}</span>
                 </div>
               </div>
             ))}
@@ -525,3 +530,4 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
     </div>
   );
 };
+

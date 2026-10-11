@@ -238,16 +238,6 @@ export const OperationsTable: React.FC<OperationsTableProps> = ({
                 <span className="hidden sm:inline">{l('Tarjetas', 'Cards')}</span>
               </button>
             </div>
-
-            <button
-              id="btn-table-export-csv"
-              onClick={onExportCSV}
-              className="flex items-center space-x-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex-shrink-0"
-              title={l('Descargar datos en CSV', 'Download data in CSV')}
-            >
-              <Download className="w-3.5 h-3.5 text-emerald-600" />
-              <span>CSV</span>
-            </button>
           </div>
         </div>
 

@@ -21,6 +21,7 @@ import {
   validatePasswordPolicy, 
   PasswordPolicyCheck 
 } from '../utils/security';
+import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
 import { useLanguage } from '../context/LanguageContext';
 
 interface ForgotPasswordModalProps {
@@ -371,6 +372,9 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
                       {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+
+                  {/* Password Strength Visualizer */}
+                  <PasswordStrengthIndicator password={newPassword} isEn={isEn} />
                 </div>
 
                 {/* Confirm Password Input */}

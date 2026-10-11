@@ -146,17 +146,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span>{t.refresh}</span>
           </button>
 
-          {/* Business Guide Modal Trigger */}
-          <button
-            id="btn-open-guide"
-            onClick={onOpenGuide}
-            className="flex items-center space-x-1.5 bg-white/10 hover:bg-white/20 dark:bg-sky-900/30 dark:hover:bg-sky-900/50 active:scale-95 text-sky-100 px-2.5 py-1.5 rounded-lg border border-white/15 dark:border-sky-700/40 transition cursor-pointer"
-            title={t.guideAndFormulas}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-[#00A3E0]" />
-            <span>{t.guideAndFormulas}</span>
-          </button>
-
           {/* Google Sheet Reconciliation Trigger */}
           {onOpenReconciliation && (
             <button
@@ -170,30 +159,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-400 text-slate-950">100%</span>
             </button>
           )}
-
-          {/* Export CSV */}
-          <button
-            id="btn-export-csv"
-            onClick={onExportCSV}
-            className="flex items-center space-x-1 bg-white/10 hover:bg-white/20 dark:bg-sky-900/30 dark:hover:bg-sky-900/50 active:scale-95 text-sky-100 px-2.5 py-1.5 rounded-lg border border-white/15 dark:border-sky-700/40 transition cursor-pointer"
-            title={language === 'es' ? "Descargar datos en CSV" : "Download data in CSV"}
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">{t.exportCsv}</span>
-          </button>
-
-          {/* Google Sheets External Link */}
-          <a
-            id="link-google-sheet"
-            href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRHr_YZ4y1-Ww6JKAerEWp1jCp07k3SZkiZcYx47A55PRA7dM-0DLzRMeJgplZbAwLDxswE2sVN9L-U/pubhtml"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-1 bg-white/10 hover:bg-white/20 dark:bg-sky-900/30 dark:hover:bg-sky-900/50 active:scale-95 text-sky-100 hover:text-white px-2.5 py-1.5 rounded-lg border border-white/15 dark:border-sky-700/40 transition"
-            title={language === 'es' ? "Abrir hoja de cálculo pública" : "Open public Google Sheet"}
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">Sheet</span>
-          </a>
 
           {/* Language Switcher Dual Segmented Button (Desktop) */}
           <div className="flex items-center bg-white/10 dark:bg-sky-950/50 p-0.5 rounded-xl border border-white/20 dark:border-sky-700/50 shadow-xs">
@@ -227,27 +192,16 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Active User Badge & Logout Trigger */}
+          {/* Active User Name Only & Logout Trigger */}
           {currentUser && (
             <div className="flex items-center gap-1.5 pl-1.5 border-l border-white/20">
               <div 
-                className="flex items-center space-x-1.5 px-2.5 py-1 rounded-xl bg-white/10 dark:bg-sky-950/40 border border-white/15 text-xs text-slate-100"
-                title={`${currentUser.name} (${currentUser.email})`}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/10 dark:bg-sky-950/40 border border-white/15 text-xs text-slate-100"
+                title={currentUser.email}
               >
-                {currentUser.role === 'superadmin' ? (
-                  <Crown className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                ) : (
-                  <UserCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                )}
-                <span className="font-semibold text-[11px] max-w-[120px] truncate">
+                <UserCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="font-bold text-xs text-white max-w-[150px] truncate">
                   {currentUser.name}
-                </span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md ${
-                  currentUser.role === 'superadmin' 
-                    ? 'bg-amber-400/25 text-amber-300 border border-amber-400/40' 
-                    : 'bg-cyan-400/20 text-cyan-200 border border-cyan-400/30'
-                }`}>
-                  {currentUser.role === 'superadmin' ? 'SUPER' : 'USER'}
                 </span>
               </div>
 

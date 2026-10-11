@@ -22,6 +22,22 @@ if (portArgIndex !== -1 && process.argv[portArgIndex + 1]) {
 
 app.use(express.json({ limit: '10mb' }));
 
+// SECURITY FIREWALL: Block any direct client access to internal storage, vault files, or dotfiles
+app.use((req, res, next) => {
+  const urlPath = (req.path || '').toLowerCase();
+  if (
+    urlPath.startsWith('/.data') ||
+    urlPath.includes('/.data') ||
+    urlPath.startsWith('/.server_vault') ||
+    urlPath.includes('auth_store') ||
+    urlPath.startsWith('/src/server') ||
+    (urlPath.endsWith('.json') && !urlPath.startsWith('/api'))
+  ) {
+    return res.status(403).json({ error: 'Acceso denegado: recurso interno del servidor protegido.' });
+  }
+  next();
+});
+
 // ==========================================
 // BACKEND SECURE AUTHENTICATION ENDPOINTS
 // ==========================================
@@ -32,7 +48,7 @@ import {
   resetPasswordWithToken, 
   validateSessionToken, 
   destroySessionToken 
-} from './src/server/authService.js';
+} from './src/server/authService.ts';
 
 // Get visual Captcha
 app.get('/api/auth/captcha', (_req, res) => {
@@ -50,14 +66,11 @@ app.post('/api/auth/login', async (req, res) => {
     const { email, password, deviceInfo } = req.body;
     const result = await authenticateUser(email, password, deviceInfo);
 
-    if (!result.success) {
-      return res.status(401).json(result);
-    }
-
-    return res.json(result);
+    // Return 200 with result payload so browser does not trigger 401 network alerts
+    return res.status(200).json(result);
   } catch (err: any) {
     console.error('[Server] Login error:', err);
-    return res.status(500).json({ error: 'Error interno de autenticación' });
+    return res.status(500).json({ success: false, error: 'Error interno de autenticación' });
   }
 });
 
@@ -67,14 +80,10 @@ app.post('/api/auth/forgot-password', async (req, res) => {
     const { email, captcha, captchaId } = req.body;
     const result = await requestPasswordReset(email, captcha, captchaId);
 
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    return res.json(result);
+    return res.status(200).json(result);
   } catch (err: any) {
     console.error('[Server] Forgot password error:', err);
-    return res.status(500).json({ error: 'Error al procesar recuperación de contraseña' });
+    return res.status(500).json({ success: false, error: 'Error al procesar recuperación de contraseña' });
   }
 });
 
@@ -84,14 +93,10 @@ app.post('/api/auth/reset-password', async (req, res) => {
     const { email, token, newPassword } = req.body;
     const result = await resetPasswordWithToken(email, token, newPassword);
 
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    return res.json(result);
+    return res.status(200).json(result);
   } catch (err: any) {
     console.error('[Server] Reset password error:', err);
-    return res.status(500).json({ error: 'Error al actualizar contraseña' });
+    return res.status(500).json({ success: false, error: 'Error al actualizar contraseña' });
   }
 });
 

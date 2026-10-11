@@ -146,15 +146,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <span className="text-[10px] px-1.5 py-0.2 bg-emerald-400 text-slate-950 font-bold rounded-full">{l('100% Exacto', '100% Exact')}</span>
               </button>
             )}
-
-            <button
-              onClick={onExportCSV}
-              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 active:scale-95 text-slate-200 hover:text-white text-xs font-semibold rounded-xl border border-white/15 transition flex items-center gap-1.5 cursor-pointer"
-              title={l('Descargar base de datos completa en formato CSV', 'Download entire dataset in CSV format')}
-            >
-              <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">{l('Exportar CSV', 'Export CSV')}</span>
-            </button>
           </div>
         </div>
 

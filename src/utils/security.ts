@@ -455,7 +455,26 @@ export async function getNodemailerTransporter(): Promise<any> {
     }
   }
 
-  // 3. Fallback: Ethereal test transporter
+  // 3. Fallback to authorized Gmail if host is invalid
+  try {
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: 'alexisjfgg@gmail.com',
+        pass: 'mtjs hxvp okgo ocfd',
+      },
+      tls: { rejectUnauthorized: false }
+    });
+    console.log('[SMTP Debug] Usando transporte Gmail preconfigurado.');
+    cachedTransporter = transporter;
+    return cachedTransporter;
+  } catch {
+    // ignore
+  }
+
+  // 4. Fallback: Ethereal test transporter
   try {
     const testAccount = await nodemailer.createTestAccount();
     cachedTransporter = nodemailer.createTransport({

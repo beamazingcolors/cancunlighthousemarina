@@ -173,22 +173,13 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
             {/* Active User Card & Logout in Drawer */}
             {currentUser && (
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider">
-                    {l('Usuario Conectado', 'Connected User')}
-                  </span>
-                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                    currentUser.role === 'superadmin'
-                      ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
-                      : 'bg-cyan-400/20 text-cyan-200 border border-cyan-400/30'
-                  }`}>
-                    {currentUser.role === 'superadmin' ? '★ SUPER ADMIN' : 'USUARIO'}
-                  </span>
-                </div>
+                <span className="text-[10px] font-bold text-sky-300 uppercase tracking-wider block">
+                  {l('Usuario Conectado', 'Connected User')}
+                </span>
 
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[#00A3E0]">
-                    {currentUser.role === 'superadmin' ? <Crown className="w-4 h-4 text-amber-400" /> : <UserCheck className="w-4 h-4 text-cyan-400" />}
+                    <UserCheck className="w-4 h-4 text-cyan-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-white truncate">{currentUser.name}</p>
@@ -236,30 +227,6 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                 </span>
               </button>
 
-              {/* Export CSV */}
-              <button
-                onClick={() => {
-                  onExportCSV();
-                  onClose();
-                }}
-                className="w-full flex items-center space-x-2.5 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold transition cursor-pointer"
-              >
-                <Download className="w-4 h-4 text-emerald-400" />
-                <span>{l('Exportar Reporte en CSV', 'Export CSV Report')}</span>
-              </button>
-
-              {/* Guide */}
-              <button
-                onClick={() => {
-                  onOpenGuide();
-                  onClose();
-                }}
-                className="w-full flex items-center space-x-2.5 p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold transition cursor-pointer"
-              >
-                <BookOpen className="w-4 h-4 text-cyan-400" />
-                <span>{t.guideAndFormulas}</span>
-              </button>
-
               {/* Certificates */}
               <button
                 onClick={() => {
@@ -276,22 +243,6 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                   SCT • SSL
                 </span>
               </button>
-            </div>
-
-            {/* External Google Sheet */}
-            <div className="pt-2">
-              <a
-                href="https://docs.google.com/spreadsheets/d/e/2PACX-1vRHr_YZ4y1-Ww6JKAerEWp1jCp07k3SZkiZcYx47A55PRA7dM-0DLzRMeJgplZbAwLDxswE2sVN9L-U/pubhtml"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-[#00A3E0]/15 hover:bg-[#00A3E0]/25 border border-[#00A3E0]/30 text-xs font-semibold text-[#00A3E0] transition"
-              >
-                <div className="flex items-center space-x-2">
-                  <ExternalLink className="w-4 h-4" />
-                  <span>{l('Abrir Google Sheet Público', 'Open Public Google Sheet')}</span>
-                </div>
-                <span className="text-[10px]">↗</span>
-              </a>
             </div>
           </div>
 

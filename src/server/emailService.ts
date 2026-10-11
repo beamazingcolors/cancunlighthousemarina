@@ -129,7 +129,23 @@ async function getTransporter(): Promise<Transporter> {
       console.warn('[EmailService] Custom SMTP setup error:', e);
     }
   } else if (process.env.SMTP_HOST) {
-    console.warn(`[EmailService] Configured SMTP_HOST "${process.env.SMTP_HOST}" is not a valid domain name. Using standard reliable transporter.`);
+    console.warn(`[EmailService] Configured SMTP_HOST "${process.env.SMTP_HOST}" is not a valid domain name. Checking Gmail defaults.`);
+    try {
+      transporterInstance = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: 'alexisjfgg@gmail.com',
+          pass: 'mtjs hxvp okgo ocfd',
+        },
+        tls: { rejectUnauthorized: false }
+      });
+      console.log('[EmailService] Usando conexión Gmail autorizada.');
+      return transporterInstance;
+    } catch {
+      // ignore
+    }
   }
 
   // 3. Fallback to automated Ethereal transporter

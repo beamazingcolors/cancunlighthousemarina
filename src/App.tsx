@@ -27,7 +27,7 @@ import { BackToTopButton } from './components/BackToTopButton';
 import { NetworkStatusBanner } from './components/NetworkStatusBanner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ThemeProvider } from './context/ThemeContext';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { LoginScreen } from './components/LoginScreen';
 import { ExitConfirmModal } from './components/ExitConfirmModal';
 import { 
@@ -46,6 +46,7 @@ function AuthenticatedDashboard({
   currentUser,
   onLogout
 }: AuthenticatedDashboardProps) {
+  const { l } = useLanguage();
   const [isExitModalOpen, setIsExitModalOpen] = useState<boolean>(false);
   const [records, setRecords] = useState<OperationRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -363,13 +364,13 @@ function AuthenticatedDashboard({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
-                  Registro de Operaciones Recientes
+                  {l('Registro de Operaciones Recientes', 'Recent Operations Log')}
                 </h3>
                 <button
                   onClick={() => setActiveTab('operations')}
                   className="text-xs font-semibold text-cyan-700 dark:text-cyan-400 hover:text-cyan-800 dark:hover:text-cyan-300 underline cursor-pointer"
                 >
-                  Ver tabla completa con todos los filtros →
+                  {l('Ver tabla completa con todos los filtros →', 'View full table with all filters →')}
                 </button>
               </div>
 
@@ -462,10 +463,10 @@ function AuthenticatedDashboard({
       <footer className="bg-slate-900 text-slate-400 py-6 border-t border-slate-800 text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
           <div>
-            <span className="text-white font-bold">Cancun Lighthouse Marina</span> — Sistema Corporativo de Control Financiero y Operativo {new Date().getFullYear()}
+            <span className="text-white font-bold">Cancun Lighthouse Marina</span> — {l('Sistema Corporativo de Control Financiero y Operativo', 'Corporate Financial & Operations Control System')} {new Date().getFullYear()}
           </div>
           <div className="flex items-center flex-wrap justify-center gap-x-4 gap-y-2 text-[11px] text-slate-400">
-            <span>Fuente: Google Sheets TSV</span>
+            <span>{l('Fuente: Google Sheets TSV', 'Source: Google Sheets TSV')}</span>
             <span>•</span>
             <button 
               onClick={() => {
@@ -474,8 +475,8 @@ function AuthenticatedDashboard({
               }}
               className="text-[#00A3E0] hover:underline cursor-pointer font-semibold flex items-center gap-1"
             >
-              Calendario de Ventas
-              <span className="px-1.5 py-0.2 bg-[#00A3E0]/20 text-[#00A3E0] rounded text-[9px]">Días & Semanas</span>
+              {l('Calendario de Ventas', 'Sales Calendar')}
+              <span className="px-1.5 py-0.2 bg-[#00A3E0]/20 text-[#00A3E0] rounded text-[9px]">{l('Días & Semanas', 'Days & Weeks')}</span>
             </button>
             <span>•</span>
             <button 
@@ -485,30 +486,23 @@ function AuthenticatedDashboard({
               }}
               className="text-indigo-400 hover:underline cursor-pointer font-semibold flex items-center gap-1"
             >
-              Ventas por Semanas
-              <span className="px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded text-[9px]">Semanas</span>
+              {l('Ventas por Semanas', 'Weekly Sales')}
+              <span className="px-1.5 py-0.2 bg-indigo-500/20 text-indigo-300 rounded text-[9px]">{l('Semanas', 'Weeks')}</span>
             </button>
             <span>•</span>
             <button 
               onClick={() => setIsReconciliationOpen(true)}
               className="text-cyan-400 hover:underline cursor-pointer font-semibold flex items-center gap-1"
             >
-              Auditoría Google Sheet
+              {l('Auditoría Google Sheet', 'Google Sheet Audit')}
               <span className="px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded text-[9px]">100%</span>
-            </button>
-            <span>•</span>
-            <button 
-              onClick={() => setIsGuideOpen(true)}
-              className="text-cyan-400 hover:underline cursor-pointer"
-            >
-              Guía de llenado
             </button>
             <span>•</span>
             <button 
               onClick={() => setIsCertificatesOpen(true)}
               className="text-emerald-400 hover:underline cursor-pointer"
             >
-              Certificados
+              {l('Certificados', 'Certificates')}
             </button>
           </div>
         </div>
